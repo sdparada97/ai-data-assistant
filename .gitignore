@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+.ipynb_checkpoints/
+*.log
+dist/
+build/
+
+# Node
+node_modules/
+
+# Entorno y secretos
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.swp
+
+# Claude Code (config local por desarrollador)
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Docker: sobrescrituras locales de compose
+docker-compose.override.yml
+compose.override.yaml
+
+# Graphify: caché y artefactos pesados (graph.json y GRAPH_REPORT.md sí se versionan)
+graphify-out/cache/
+graphify-out/graph.html
+
+# Datos derivados (Brío Analyst)
+data/processed/
+*.duckdb

@@ -1,0 +1,260 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1792550184.0745597,
+    "seen": 1792554331.3464534,
+    "ast_hash": "57c3ca239e361bf3f72a77e31acaef59",
+    "semantic_hash": ""
+  },
+  ".claude/skills/openspec-apply-change/SKILL.md": {
+    "mtime": 1792536087.0011482,
+    "seen": 1792536090.3026676,
+    "ast_hash": "2d63a1fb60b595f6203f8797c4837d7a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/openspec-archive-change/SKILL.md": {
+    "mtime": 1792536087.0052211,
+    "seen": 1792536090.3026688,
+    "ast_hash": "4339a117bb16d228a045515c80430197",
+    "semantic_hash": ""
+  },
+  ".claude/skills/openspec-explore/SKILL.md": {
+    "mtime": 1792536087.0011482,
+    "seen": 1792536090.3026698,
+    "ast_hash": "756511b4e9c6fd4d5f567c5c989b4226",
+    "semantic_hash": ""
+  },
+  ".claude/skills/openspec-propose/SKILL.md": {
+    "mtime": 1792536087.0052211,
+    "seen": 1792536090.3026705,
+    "ast_hash": "c4e194e0e7a00973ffdb94919294303a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/openspec-sync-specs/SKILL.md": {
+    "mtime": 1792536087.0052211,
+    "seen": 1792536090.3026717,
+    "ast_hash": "2b88f7a0958e846c49c4c710a5bf1cfb",
+    "semantic_hash": ""
+  },
+  ".claude/skills/openspec-update-change/SKILL.md": {
+    "mtime": 1792536087.0011482,
+    "seen": 1792536090.3026724,
+    "ast_hash": "8865ca1f0f6bc4f88afc099939d6be3a",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1792554000.57119,
+    "seen": 1792554331.3467627,
+    "ast_hash": "eb32500e511ce2cf2d9fcfaa374676dd",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1792554318.8209708,
+    "seen": 1792554331.3467638,
+    "ast_hash": "c5cb26e4b559480c5bf33477b56dc465",
+    "semantic_hash": ""
+  },
+  "docs/architecture.md": {
+    "mtime": 1792554000.570771,
+    "seen": 1792554331.3467655,
+    "ast_hash": "a1d9817a4ad599d5236e2968de550e25",
+    "semantic_hash": ""
+  },
+  "openspec/config.yaml": {
+    "mtime": 1792554000.5709617,
+    "seen": 1792554331.3467717,
+    "ast_hash": "d88b07d3f9a74390af45970950f4e708",
+    "semantic_hash": ""
+  },
+  ".claude/commands/opsx/apply.md": {
+    "mtime": 1792536087.0104716,
+    "seen": 1792536090.30266,
+    "ast_hash": "7b4a3e16aa083b09c502cace6c8ccdd2",
+    "semantic_hash": ""
+  },
+  ".claude/commands/opsx/archive.md": {
+    "mtime": 1792536087.011693,
+    "seen": 1792536090.3026621,
+    "ast_hash": "87923b13180e4faa88b6a8a8d04b7751",
+    "semantic_hash": ""
+  },
+  ".claude/commands/opsx/explore.md": {
+    "mtime": 1792536087.0098653,
+    "seen": 1792536090.3026633,
+    "ast_hash": "f9835774fb34777fb80600bde7b9f910",
+    "semantic_hash": ""
+  },
+  ".claude/commands/opsx/propose.md": {
+    "mtime": 1792536087.0119598,
+    "seen": 1792536090.3026645,
+    "ast_hash": "db5d477e39ae059c8f1a0af5edcfed7e",
+    "semantic_hash": ""
+  },
+  ".claude/commands/opsx/sync.md": {
+    "mtime": 1792536087.0113602,
+    "seen": 1792536090.3026655,
+    "ast_hash": "026755855f5363483763efc5a2b73e15",
+    "semantic_hash": ""
+  },
+  ".claude/commands/opsx/update.md": {
+    "mtime": 1792536087.0108871,
+    "seen": 1792536090.3026662,
+    "ast_hash": "7d60f39f721a6348337d440c929fc19e",
+    "semantic_hash": ""
+  },
+  "backend/pyproject.toml": {
+    "mtime": 1792554036.2257543,
+    "seen": 1792554331.3464582,
+    "ast_hash": "2e039be5fcfe27c7ca62588219c25ea2",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/__init__.py": {
+    "mtime": 1792554036.226562,
+    "seen": 1792554331.34646,
+    "ast_hash": "91db74bb87ee28b0d26195b100030351",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/main.py": {
+    "mtime": 1792554109.0790017,
+    "seen": 1792554331.3464615,
+    "ast_hash": "86471bc5cb6af166c0efab8aebb5b973",
+    "semantic_hash": ""
+  },
+  "backend/tests/test_health.py": {
+    "mtime": 1792554109.0799599,
+    "seen": 1792554331.3464625,
+    "ast_hash": "a6a119c3e5464fdfbeb7a0c3c11dd0a3",
+    "semantic_hash": ""
+  },
+  "conftest.py": {
+    "mtime": 1792556149.1014442,
+    "seen": 1792556162.4233644,
+    "ast_hash": "ab6aba76ee1d7eddadba6e06a5aed65e",
+    "semantic_hash": ""
+  },
+  "frontend/pyproject.toml": {
+    "mtime": 1792554149.4171176,
+    "seen": 1792554331.3464649,
+    "ast_hash": "59ddf63e681ebca61a43ea3902358be1",
+    "semantic_hash": ""
+  },
+  "frontend/src/analyst_frontend/__init__.py": {
+    "mtime": 1792554036.226562,
+    "seen": 1792554331.3464658,
+    "ast_hash": "7e6b0b06096cd8d027b5f9f80267f551",
+    "semantic_hash": ""
+  },
+  "frontend/src/analyst_frontend/app.py": {
+    "mtime": 1792554149.4088833,
+    "seen": 1792554331.3464668,
+    "ast_hash": "1c991c750ee261f3044f6ee09bdb6157",
+    "semantic_hash": ""
+  },
+  "frontend/src/analyst_frontend/cli.py": {
+    "mtime": 1792555750.5434623,
+    "seen": 1792555868.4773085,
+    "ast_hash": "7d409686e64f7f39eee4be49afa51c43",
+    "semantic_hash": ""
+  },
+  "frontend/src/analyst_frontend/config.py": {
+    "mtime": 1792554149.4049172,
+    "seen": 1792554331.3464684,
+    "ast_hash": "c328ceb422af815987dae0725d7ef314",
+    "semantic_hash": ""
+  },
+  "frontend/tests/test_app.py": {
+    "mtime": 1792555781.0035222,
+    "seen": 1792555868.4773295,
+    "ast_hash": "4f5add89b5342fdaf27c29bc671d9af6",
+    "semantic_hash": ""
+  },
+  "tests/test_compose.py": {
+    "mtime": 1792554264.3162332,
+    "seen": 1792554331.3464704,
+    "ast_hash": "1ac229d6112f53ca523881b9a1455579",
+    "semantic_hash": ""
+  },
+  "tests/test_environment.py": {
+    "mtime": 1792554099.7166514,
+    "seen": 1792554331.346471,
+    "ast_hash": "0e76397d742b619324de63a061e7ac17",
+    "semantic_hash": ""
+  },
+  "tests/test_isolation.py": {
+    "mtime": 1792556146.3043551,
+    "seen": 1792556162.4235148,
+    "ast_hash": "d7d63a83743bd7223d6e8e55b55eaee9",
+    "semantic_hash": ""
+  },
+  "tests/test_layout.py": {
+    "mtime": 1792554098.6633582,
+    "seen": 1792554331.346473,
+    "ast_hash": "9e44ee98cc3ae98e6245ed25e3feaa27",
+    "semantic_hash": ""
+  },
+  "tests/test_makefile.py": {
+    "mtime": 1792554191.6320171,
+    "seen": 1792554331.346474,
+    "ast_hash": "c7e3d3032066ae968134e83fb88a358c",
+    "semantic_hash": ""
+  },
+  ".claude/agents/implementation-verifier.md": {
+    "mtime": 1792537638.4422393,
+    "seen": 1792554331.3464746,
+    "ast_hash": "9e59c8d6583258ab80e762541c34e689",
+    "semantic_hash": ""
+  },
+  ".claude/agents/spec-reviewer.md": {
+    "mtime": 1792537638.4415832,
+    "seen": 1792554331.3464756,
+    "ast_hash": "7bea50c4881a015c4d0e7e442592ca2f",
+    "semantic_hash": ""
+  },
+  ".claude/commands/verify-change.md": {
+    "mtime": 1792537638.4433005,
+    "seen": 1792554331.3466377,
+    "ast_hash": "a66b2ddb3ea75530686305163f4acf4a",
+    "semantic_hash": ""
+  },
+  "docker-compose.yml": {
+    "mtime": 1792554237.484533,
+    "seen": 1792554331.3467646,
+    "ast_hash": "52e57bd428e8c0fd246c632ba2d1f746",
+    "semantic_hash": ""
+  },
+  "openspec/ROADMAP.md": {
+    "mtime": 1792554427.546172,
+    "seen": 1792555868.4777372,
+    "ast_hash": "62bf3e29e5fdad8f847dfcfa6e563cbd",
+    "semantic_hash": ""
+  },
+  "openspec/changes/restructure-monorepo-layout/.openspec.yaml": {
+    "mtime": 1792551791.9117,
+    "seen": 1792554331.3467674,
+    "ast_hash": "328aa401f592c63f23aed934ffffcfb1",
+    "semantic_hash": ""
+  },
+  "openspec/changes/restructure-monorepo-layout/design.md": {
+    "mtime": 1792556159.168899,
+    "seen": 1792556162.4239557,
+    "ast_hash": "308f06230d2290ed268a6f85eddfc49e",
+    "semantic_hash": ""
+  },
+  "openspec/changes/restructure-monorepo-layout/proposal.md": {
+    "mtime": 1792554124.5942469,
+    "seen": 1792554331.346769,
+    "ast_hash": "233a7295e53e4c14249e3b24625e5b93",
+    "semantic_hash": ""
+  },
+  "openspec/changes/restructure-monorepo-layout/specs/project-layout/spec.md": {
+    "mtime": 1792555817.9477038,
+    "seen": 1792555868.4777784,
+    "ast_hash": "ca05cb040a22f7f84f50f94301cda0e2",
+    "semantic_hash": ""
+  },
+  "openspec/changes/restructure-monorepo-layout/tasks.md": {
+    "mtime": 1792556159.1681628,
+    "seen": 1792556162.4240005,
+    "ast_hash": "6ec0bd4beb48bc1c13355df21bd8ba39",
+    "semantic_hash": ""
+  }
+}

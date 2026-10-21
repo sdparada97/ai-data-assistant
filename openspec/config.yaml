@@ -1,0 +1,73 @@
+schema: spec-driven
+
+# Restricciones que un agente no puede deducir leyendo el código.
+# Resumen (≤ 350 palabras): se inyecta en cada artefacto. El detalle vive en docs/architecture.md.
+context: |
+  Proyecto: Brío Analyst, asistente de análisis
+  comercial con IA para el equipo de mercadeo de Almena Foods. La marca Brío
+  muestra señales de deterioro en el primer semestre de 2026. El equipo necesita
+  entender su desempeño, contrastar la información comercial con la investigación
+  de consumidor y explorar factores asociados sin sacrificar exactitud, evidencia
+  ni criterio humano. Un analista pregunta en lenguaje natural y recibe respuestas
+  fundamentadas.
+
+  Fuentes (en data/raw/ cuando se copien): una base de ventas CSV (~4.000
+  registros, con inconsistencias esperables) y documentos PDF, Word y Markdown
+  (investigación de consumidor, observaciones de puntos de venta y reporte
+  comercial). No supongas columnas, valores ni formatos: consulta
+  docs/EXPLORACION_DATOS.md o los archivos reales.
+
+  Requisitos transversales:
+  - Todo número sale de código determinista sobre DuckDB; el LLM nunca calcula cifras.
+  - Cada respuesta distingue hechos comprobados, hipótesis, contradicciones e
+    información insuficiente, con fuentes citadas. Nunca se afirma causalidad
+    no demostrada.
+  - Las inconsistencias de datos se detectan, se tratan y se explicitan cuando
+    afectan los resultados.
+  - Nada hardcodeado: marca, períodos, regiones y canales son parámetros; los
+    valores concretos solo viven en tests y en eval/golden_set.yaml.
+  - Nunca se ejecuta código ni SQL generado sin validación.
+  - Credenciales solo en .env; manejo explícito de errores; pruebas automatizadas.
+  - Simple, reproducible y confiable antes que complejo.
+
+  Stack: Python 3.14, FastAPI y LangGraph para la orquestación; LangChain solo
+  para integraciones de modelo, tools y salida estructurada. LLM sin costo:
+  Gemini Flash (principal) y Ollama (alternativa), intercambiables por variable
+  de entorno. DuckDB embebido con capa semántica (semantic_layer.yaml). Ingesta
+  validada con Pandera; recuperación híbrida BM25 + embeddings locales (fastembed)
+  combinados con RRF. Frontend Streamlit; todo en Docker Compose.
+  Pruebas: unit, agent (LLM falso), integration (@pytest.mark.llm) y eval.
+
+  Convenciones: artefactos (proposal, design, specs, tasks) en español;
+  identificadores de código, nombres de archivos y mensajes de commit en inglés.
+  Código en backend/src/ y frontend/src/ (D2'); documentación en docs/.
+
+  Detalle de arquitectura, grafo del agente y decisiones: docs/architecture.md.
+  Respétalas o propón explícitamente cambiarlas en el design. Antes de diseñar,
+  consulta el grafo de código (graphify query) en lugar de leer el repositorio
+  completo.
+
+rules:
+  proposal:
+    - Máximo 500 palabras
+    - Indica siempre qué queda fuera de alcance
+  specs:
+    - Escenarios WHEN/THEN concretos, basados en datos reales cuando existan (docs/EXPLORACION_DATOS.md)
+    - Cada requisito se redacta con SHALL
+  design:
+    - Si una decisión cambia docs/architecture.md, incluye la actualización como tarea
+    - Cada decisión indica las alternativas descartadas y el motivo
+  tasks:
+    - Tareas de máximo 2 horas cada una
+    - Incluye una tarea de tests por cada requisito nuevo
+    - Los tests se escriben junto al código de cada tarea, no al final
+    - Última tarea - ejecutar graphify update . y openspec validate --all
+
+operations:
+  apply:
+    guidance:
+      - Marca cada tarea como completada en tasks.md al terminarla
+      - Resume los resultados de tests en pocas líneas
+  archive:
+    guidance:
+      - Resume qué specs se fusionaron antes de terminar

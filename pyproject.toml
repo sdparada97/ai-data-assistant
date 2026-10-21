@@ -1,0 +1,19 @@
+# Raíz virtual del workspace de uv (D4). No es un paquete instalable.
+[tool.uv.workspace]
+members = ["backend", "frontend"]
+
+[tool.uv]
+required-version = "==0.13.4"
+
+[dependency-groups]
+dev = [
+    "httpx2==2.15.1",
+    "pytest==9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests", "frontend/tests", "tests"]
+addopts = ["--strict-markers", "--import-mode=importlib"]
+markers = [
+    "llm: prueba que llama a un LLM real; requiere red y credenciales (make test-llm)",
+]

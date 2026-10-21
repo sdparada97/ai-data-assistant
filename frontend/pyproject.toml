@@ -1,0 +1,15 @@
+[project]
+name = "analyst-frontend"
+version = "0.1.0"
+description = "Interfaz del asistente de análisis comercial"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "streamlit==1.66.0",
+]
+
+[project.scripts]
+analyst-frontend = "analyst_frontend.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.13.4,<0.14"]
+build-backend = "uv_build"

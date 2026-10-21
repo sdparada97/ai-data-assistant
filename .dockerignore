@@ -1,0 +1,15 @@
+# Solo se necesitan los pyproject, uv.lock y el código de cada aplicación.
+.git
+.venv
+**/__pycache__
+**/.pytest_cache
+.claude
+graphify-out
+openspec
+docs
+data
+tests
+conftest.py
+**/tests
+.env
+.env.*
