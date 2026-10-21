@@ -222,39 +222,45 @@
     "semantic_hash": ""
   },
   "openspec/ROADMAP.md": {
-    "mtime": 1792554427.546172,
-    "seen": 1792555868.4777372,
-    "ast_hash": "62bf3e29e5fdad8f847dfcfa6e563cbd",
+    "mtime": 1792556416.9475276,
+    "seen": 1792556417.351656,
+    "ast_hash": "7ca726a19333ae34f412f03ca8598895",
     "semantic_hash": ""
   },
-  "openspec/changes/restructure-monorepo-layout/.openspec.yaml": {
+  "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/.openspec.yaml": {
     "mtime": 1792551791.9117,
-    "seen": 1792554331.3467674,
+    "seen": 1792556417.3516579,
     "ast_hash": "328aa401f592c63f23aed934ffffcfb1",
     "semantic_hash": ""
   },
-  "openspec/changes/restructure-monorepo-layout/design.md": {
+  "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/design.md": {
     "mtime": 1792556159.168899,
-    "seen": 1792556162.4239557,
+    "seen": 1792556417.351659,
     "ast_hash": "308f06230d2290ed268a6f85eddfc49e",
     "semantic_hash": ""
   },
-  "openspec/changes/restructure-monorepo-layout/proposal.md": {
+  "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/proposal.md": {
     "mtime": 1792554124.5942469,
-    "seen": 1792554331.346769,
+    "seen": 1792556417.35166,
     "ast_hash": "233a7295e53e4c14249e3b24625e5b93",
     "semantic_hash": ""
   },
-  "openspec/changes/restructure-monorepo-layout/specs/project-layout/spec.md": {
+  "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/specs/project-layout/spec.md": {
     "mtime": 1792555817.9477038,
-    "seen": 1792555868.4777784,
+    "seen": 1792556417.351661,
     "ast_hash": "ca05cb040a22f7f84f50f94301cda0e2",
     "semantic_hash": ""
   },
-  "openspec/changes/restructure-monorepo-layout/tasks.md": {
+  "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/tasks.md": {
     "mtime": 1792556159.1681628,
-    "seen": 1792556162.4240005,
+    "seen": 1792556417.351662,
     "ast_hash": "6ec0bd4beb48bc1c13355df21bd8ba39",
+    "semantic_hash": ""
+  },
+  "openspec/specs/project-layout/spec.md": {
+    "mtime": 1792556400.7167413,
+    "seen": 1792556417.351682,
+    "ast_hash": "e00ddb5f81c69a2131b03e2d47d461fc",
     "semantic_hash": ""
   }
 }

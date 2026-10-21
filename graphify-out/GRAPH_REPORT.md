@@ -1,17 +1,17 @@
 # Graph Report - ai-data-assistant  (2026-10-20)
 
 ## Corpus Check
-- 41 files · ~36,447 words
+- 42 files · ~37,470 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 12 file(s) not represented in the graph (top: (none) 10, .example 1, .lock 1)
 
 ## Summary
-- 270 nodes · 330 edges · 33 communities (14 shown, 19 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
+- 303 nodes · 362 edges · 33 communities (15 shown, 18 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d1a039ef`
+- Built from commit: `953edd6c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,30 +24,30 @@
 - explore.md
 - test_compose.py
 - conftest.py
-- Decisions
+- Requirements
 - test_makefile.py
 - test_layout.py
 - test_health.py
 - test_app.py
 - cli.py
+- Decisions
 - Proposal
-- Tasks
 - analyst-backend
 - analyst-frontend
-- config.py
+- Tasks
 - test_environment.py
 
 ## God Nodes (most connected - your core abstractions)
 1. `Decisions` - 11 edges
 2. `_isolate_default_suite()` - 10 edges
 3. `ADDED Requirements` - 10 edges
-4. `Tasks` - 8 edges
-5. `resolved()` - 7 edges
-6. `_marker_filter()` - 7 edges
-7. `Arquitectura de Brío Analyst` - 7 edges
-8. `_guard()` - 6 edges
-9. `_compose_config()` - 6 edges
-10. `_make()` - 6 edges
+4. `Requirements` - 10 edges
+5. `Tasks` - 8 edges
+6. `resolved()` - 7 edges
+7. `_marker_filter()` - 7 edges
+8. `Arquitectura de Brío Analyst` - 7 edges
+9. `_guard()` - 6 edges
+10. `_compose_config()` - 6 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `_compose_config()` --calls--> `subprocess`  [EXTRACTED]
@@ -58,7 +58,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (33 total, 19 thin omitted)
+## Communities (33 total, 18 thin omitted)
 
 ### Community 0 - "openspec-explore/SKILL.md"
 Cohesion: 0.17
@@ -92,9 +92,9 @@ Nodes (7): _compose_config(), resolved(), test_config_is_valid_without_env_file(
 Cohesion: 0.21
 Nodes (9): _blocked_connect(), _blocked_connect_ex(), _blocked_resolution(), _blocked_sendmsg(), _blocked_sendto(), env_example_variables(), _guard(), _isolate_default_suite() (+1 more)
 
-### Community 18 - "Decisions"
-Cohesion: 0.12
-Nodes (16): Alcance del bloqueo de red, Contenedores, Context, D2' Código fuente en `backend/src/` y `frontend/src/` (reemplaza D2), D4 Workspace de uv con un único `uv.lock`, Decisions, Design, Goals / Non-Goals (+8 more)
+### Community 18 - "Requirements"
+Cohesion: 0.06
+Nodes (32): project-layout Specification, Purpose, Requirement: Aislamiento de la suite por defecto, Requirement: Entorno Python reproducible, Requirement: Evaluación reservada, Requirement: Orquestación con contenedores, Requirement: Pruebas con LLM separadas, Requirement: Página mínima del frontend (+24 more)
 
 ### Community 19 - "test_makefile.py"
 Cohesion: 0.26
@@ -105,21 +105,25 @@ Cohesion: 0.17
 Nodes (7): _FakeApp, _render(), test_cli_launches_page_with_server_options(), test_cli_rejects_malformed_options(), test_cli_without_options_uses_default_config(), test_page_shows_configured_title_and_url(), test_page_uses_defaults_without_variables()
 
 ### Community 23 - "cli.py"
-Cohesion: 0.31
-Nodes (3): _coerce(), main(), parse_config()
+Cohesion: 0.15
+Nodes (5): _coerce(), main(), parse_config(), load_settings(), Settings
 
-### Community 24 - "Proposal"
+### Community 24 - "Decisions"
+Cohesion: 0.12
+Nodes (16): Alcance del bloqueo de red, Contenedores, Context, D2' Código fuente en `backend/src/` y `frontend/src/` (reemplaza D2), D4 Workspace de uv con un único `uv.lock`, Decisions, Design, Goals / Non-Goals (+8 more)
+
+### Community 25 - "Proposal"
 Cohesion: 0.22
 Nodes (8): Capabilities, Fuera de alcance, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
 
-### Community 25 - "Tasks"
+### Community 31 - "Tasks"
 Cohesion: 0.22
 Nodes (8): 1. Decisiones D2' y D4 en la documentación, 2. Entorno Python (requisitos "Ubicación del código fuente", "Entorno Python reproducible" y "Aislamiento de la suite por defecto"), 3. Backend (requisito "Salud del backend"), 4. Frontend (requisito "Página mínima del frontend"), 5. Comandos comunes (requisitos "Suite de pruebas sin servicios externos", "Pruebas con LLM separadas" y "Evaluación reservada"), 6. Contenedores (requisito "Orquestación con contenedores"), 7. Cierre, Tasks
 
 ## Knowledge Gaps
 - **2 isolated node(s):** `analyst-backend`, `analyst-frontend`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 159 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 181 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -132,5 +136,9 @@ _Questions this graph is uniquely positioned to answer:_
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `ADDED Requirements` be split into smaller, more focused modules?**
   _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._
+- **Should `Requirements` be split into smaller, more focused modules?**
+  _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._
+- **Should `cli.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.14619883040935672 - nodes in this community are weakly interconnected._
 - **Should `Decisions` be split into smaller, more focused modules?**
   _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

@@ -7,7 +7,7 @@ Estados: `pendiente` → `propuesto` → `aprobado` → `implementado` → `veri
 
 ## Siguiente paso
 
-Change 1 `restructure-monorepo-layout`: verificado (cumple); esperando aprobación para `/opsx:archive` (punto de control 5B).
+ETAPA 4 (exploración de datos): copiar el CSV y los documentos en `data/raw/`; después, change 2 `add-sales-ingestion`.
 
 ## Etapas
 
@@ -22,7 +22,7 @@ Change 1 `restructure-monorepo-layout`: verificado (cumple); esperando aprobaci�
 
 | # | Change | Capabilities | Depende de | ¿Usa `data/raw/`? | Estado |
 |---|--------|--------------|------------|-------------------|--------|
-| 1 | `restructure-monorepo-layout` | `project-layout` | — | No | verificado |
+| 1 | `restructure-monorepo-layout` | `project-layout` | — | No | archivado (2026-10-20) |
 | 2 | `add-sales-ingestion` | `sales-ingestion`, `data-quality` | 1, Etapa 4 | Sí | pendiente |
 | 3 | `add-sales-analytics` | `semantic-layer`, `sales-metrics` | 2 | Indirecto | pendiente |
 | 4 | `add-document-retrieval` | `document-ingestion`, `document-retrieval` | 1, Etapa 4 | Sí | pendiente |
