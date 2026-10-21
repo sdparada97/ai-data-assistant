@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "openspec/ROADMAP.md": {
-    "mtime": 1792556416.9475276,
-    "seen": 1792556417.351656,
-    "ast_hash": "7ca726a19333ae34f412f03ca8598895",
+    "mtime": 1792595990.5884926,
+    "seen": 1792595999.394243,
+    "ast_hash": "d7ee194635ebbaa585690e76a6407c14",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/.openspec.yaml": {
@@ -261,6 +261,42 @@
     "mtime": 1792556400.7167413,
     "seen": 1792556417.351682,
     "ast_hash": "e00ddb5f81c69a2131b03e2d47d461fc",
+    "semantic_hash": ""
+  },
+  "pyproject.toml": {
+    "mtime": 1792554124.5888457,
+    "seen": 1792556543.6290636,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "backend/scripts/explore_data.py": {
+    "mtime": 1792595530.8922048,
+    "seen": 1792595999.3929856,
+    "ast_hash": "671293b91f615321861fac5659fb0d3c",
+    "semantic_hash": ""
+  },
+  "data/raw/01_Contexto_Negocio.md": {
+    "mtime": 1792557364.5992565,
+    "seen": 1792564889.3579614,
+    "ast_hash": "25e2b32bbd060dfbb84ff556b56293a4",
+    "semantic_hash": ""
+  },
+  "docs/EXPLORACION_DATOS.md": {
+    "mtime": 1792595990.5853264,
+    "seen": 1792595999.3942144,
+    "ast_hash": "b6bb4c7ce31717d0ea9376f02784117b",
+    "semantic_hash": ""
+  },
+  "data/raw/03_Investigacion_Consumidor.pdf": {
+    "mtime": 1792557364.5176966,
+    "seen": 1792564889.3581247,
+    "ast_hash": "e96bbb5135b506a16b1e24db3dad0f7d",
+    "semantic_hash": ""
+  },
+  "data/raw/05_Reporte_Comercial.pdf": {
+    "mtime": 1792557364.5747886,
+    "seen": 1792564889.358126,
+    "ast_hash": "09df96cdd3ce6692ae8b9b43931511e8",
     "semantic_hash": ""
   }
 }

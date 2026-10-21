@@ -3,14 +3,14 @@
   "1": "Arquitectura de Brío Analyst",
   "2": "ADDED Requirements",
   "3": "pytest",
-  "4": "ai-data-assistant",
+  "4": "explore_data.py",
   "5": "openspec-apply-change/SKILL.md",
   "6": "openspec-archive-change/SKILL.md",
   "7": "openspec-propose/SKILL.md",
   "8": "openspec-sync-specs/SKILL.md",
   "9": "openspec-update-change/SKILL.md",
   "10": "explore.md",
-  "11": "test_compose.py",
+  "11": "test_makefile.py",
   "12": "apply.md",
   "13": "archive.md",
   "14": "propose.md",
@@ -18,7 +18,7 @@
   "16": "update.md",
   "17": "conftest.py",
   "18": "Requirements",
-  "19": "test_makefile.py",
+  "19": "Exploración de datos",
   "20": "test_layout.py",
   "21": "test_health.py",
   "22": "test_app.py",
@@ -31,5 +31,5 @@
   "29": "analyst-backend",
   "30": "analyst-frontend",
   "31": "Tasks",
-  "32": "test_environment.py"
+  "32": "Almena Foods | Contexto de negocio"
 }

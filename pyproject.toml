@@ -10,6 +10,13 @@ dev = [
     "httpx2==2.15.1",
     "pytest==9.1.1",
 ]
+# Exploración de datos (ETAPA 4): uv run --group explore python backend/scripts/explore_data.py
+explore = [
+    "pandas==3.0.6",
+    "pymupdf==1.28.2",
+    "python-docx==1.2.0",
+    "tabulate==0.10.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["backend/tests", "frontend/tests", "tests"]

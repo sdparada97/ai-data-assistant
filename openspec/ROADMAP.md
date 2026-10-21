@@ -7,7 +7,13 @@ Estados: `pendiente` → `propuesto` → `aprobado` → `implementado` → `veri
 
 ## Siguiente paso
 
-ETAPA 4 (exploración de datos): copiar el CSV y los documentos en `data/raw/`; después, change 2 `add-sales-ingestion`.
+Change 2 `add-sales-ingestion`: proponer con las reglas aprobadas en `docs/EXPLORACION_DATOS.md` (sección "Aprobación de reglas") y resolver los pendientes de abajo.
+
+## Pendientes para retomar
+
+- **Datos en revisión (cuarentena):** valorar dejar ciertos registros "en revisión" en lugar de eliminarlos o corregirlos (surgió al fusionar DQ02 en DQ01). Recordarlo al proponer `add-sales-ingestion` y al revisar las reglas DQ restantes.
+
+- **Catálogo de valores válidos antes del change 3:** DQ04 lo necesita en la ingesta (change 2), pero la capa semántica estaba prevista para el change 3. Resolverlo al proponer `add-sales-ingestion`.
 
 ## Etapas
 
@@ -16,7 +22,7 @@ ETAPA 4 (exploración de datos): copiar el CSV y los documentos en `data/raw/`; 
 | 0 | Diagnóstico y configuración | hecha |
 | 1 | Contexto de OpenSpec | hecha |
 | 2 | Hoja de ruta | hecha |
-| 4 | Exploración de datos → `docs/EXPLORACION_DATOS.md` | bloqueada: faltan datos en `data/raw/`. Va antes de los changes 2 y 4 |
+| 4 | Exploración de datos → `docs/EXPLORACION_DATOS.md` | hecha; reglas aprobadas (2026-10-21) |
 
 ## Changes
 
