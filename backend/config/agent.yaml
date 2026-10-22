@@ -1,0 +1,67 @@
+# Configuración del agente de consulta (change add-query-agent).
+# Sin valores de negocio: marcas, regiones o períodos salen de semantic_layer.yaml y de la base.
+
+assistant_name: Brío Analyst      # nombre con el que se presenta en los prompts
+
+provider:
+  gemini:
+    requests_per_minute: 8        # capa gratuita: cuota baja; se va por debajo del límite
+    burst: 1
+    timeout_s: 120                # tiempo máximo por llamada
+    max_output_tokens: 8192       # en Gemini 3 incluye los tokens de razonamiento
+    unavailable_retries: 2        # reintentos ante 500/503/504 (nunca ante 429 de cuota)
+    backoff_s: 2.0                # espera inicial entre reintentos (exponencial con jitter)
+    temperature_by_prefix:
+      gemini-3: 1.0               # recomendación de Google para Gemini 3
+    default_temperature: 0.0
+
+limits:
+  max_question_chars: 1000
+  max_calls_per_tool: 3           # consultas por herramienta y pregunta (plan + corrección)
+  max_quality_issues: 10          # incidencias de calidad que se resumen para el LLM
+  docs_top_k: 5                   # fragmentos por búsqueda si el LLM no indica otro número
+
+out_of_scope_message: >-
+  Solo puedo responder preguntas sobre las ventas y los documentos cargados
+  (contexto de negocio, investigación de consumidor, observaciones de canales y reporte comercial).
+
+# Expresiones que no pueden aparecer en hechos, contradicciones ni información insuficiente.
+causal_lexicon:
+  - causó
+  - causaron
+  - causa de
+  - provocó
+  - provocaron
+  - se debió a
+  - se debe a
+  - por culpa de
+  - gracias a
+  - generó
+  - generaron
+  - llevó a
+  - impulsó
+  - explica la caída
+  - explican la caída
+  - a raíz de
+  - como consecuencia de
+  - es consecuencia de
+  - efecto de
+
+# Toda hipótesis debe contener al menos una de estas expresiones atenuadas.
+# Las tres primeras sirven de ejemplo en el prompt de síntesis y en los avisos de la verificación.
+hedges:
+  - podría
+  - es compatible con
+  - sugiere
+  - podrían
+  - posible
+  - posiblemente
+  - sugieren
+  - quizá
+  - quizás
+  - tal vez
+  - probablemente
+  - puede
+  - pueden
+  - indicaría
+  - indicio

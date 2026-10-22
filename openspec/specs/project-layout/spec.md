@@ -72,16 +72,20 @@ Toda prueba no marcada como `llm` SHALL ejecutarse sin acceso a red y sin las va
 - **THEN** dentro de la prueba `MODELS_CACHE_DIR` conserva su valor, `GEMINI_API_KEY` no está definida y la red está bloqueada
 
 ### Requirement: Pruebas con LLM separadas
-`make test-llm` SHALL ejecutar únicamente las pruebas marcadas como `llm`. Si no hay ninguna, SHALL terminar con código 0 e informarlo.
+`make test-llm` SHALL ejecutar únicamente las pruebas marcadas como `llm`, en las rutas de `LLM_TESTS` si se indica. Si no hay ninguna, SHALL terminar con código 0 e informarlo. SHALL cargar las variables del archivo `ENV_FILE` (por defecto `.env`) solo si existe, sin mostrar su contenido.
 
 #### Scenario: Ninguna prueba llm registrada
-- **WHEN** se ejecuta `make test-llm` y no existe ninguna prueba marcada como `llm`
+- **WHEN** se ejecuta `make test-llm` con `LLM_TESTS` apuntando a un directorio sin pruebas marcadas como `llm`
 - **THEN** termina con código 0
 - **AND** la salida contiene "No hay pruebas llm"
 
 #### Scenario: Solo pruebas llm
 - **WHEN** se recolecta, con el filtro de `make test-llm`, un directorio temporal que contiene una prueba marcada con `@pytest.mark.llm` y otra sin marca
 - **THEN** solo se recoge la prueba marcada
+
+#### Scenario: Archivo de entorno inexistente
+- **WHEN** se ejecuta `make test-llm` con `ENV_FILE` apuntando a un archivo que no existe y `LLM_TESTS` a un directorio vacío
+- **THEN** termina con código 0, sin error por el archivo ausente
 
 ### Requirement: Pruebas con el modelo de embeddings separadas
 `make test-embeddings` SHALL ejecutar únicamente las pruebas marcadas como `embeddings`, sin red. Si el modelo configurado no está en `MODELS_CACHE_DIR`, SHALL terminar con código distinto de 0 y un mensaje que indique ejecutar `make models`, sin ejecutar las pruebas.

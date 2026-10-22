@@ -1,32 +1,32 @@
 # Graph Report - ai-data-assistant  (2026-10-22)
 
 ## Corpus Check
-- 123 files · ~102,789 words
+- 156 files · ~129,408 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 13 file(s) not represented in the graph (top: (none) 10, .example 1, .csv 1)
 
 ## Summary
-- 1969 nodes · 4134 edges · 128 communities (106 shown, 22 thin omitted)
-- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 574 edges (avg confidence: 0.94)
+- 2622 nodes · 5898 edges · 153 communities (130 shown, 23 thin omitted)
+- Extraction: 84% EXTRACTED · 16% INFERRED · 0% AMBIGUOUS · INFERRED: 962 edges (avg confidence: 0.94)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f0b28e64`
+- Built from commit: `95f33929`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - openspec-explore/SKILL.md
-- Arquitectura de Brío Analyst
+- pathlib
 - ADDED Requirements
-- markdown.py
-- explore_data.py
+- consultar_metrica
+- test_graph.py
 - explore.md
-- test_models_cli.py
+- ADDED Requirements
 - conftest.py
 - Requirements
 - Exploración de datos
-- load_documents_config
+- documents/config.py
 - test_health.py
 - test_app.py
 - Requirements
@@ -39,7 +39,7 @@
 - rules.py
 - ADDED Requirements
 - test_rules.py
-- ingest
+- test_storage.py
 - test_pipeline.py
 - Requirements
 - test_metrics.py
@@ -53,53 +53,53 @@
 - Requirements
 - ADDED Requirements
 - Requirements
-- evidence_id
+- Requirement: Errores del proveedor
 - ADDED Requirements
 - Requirements
 - ingest_documents
 - Requirement: Estructura de las incidencias
 - open_readonly
-- settings.py
-- publish
-- documents/errors.py
+- ADDED Requirements
+- calidad_datos
+- ingest.py
 - Requirement: Aislamiento de la suite por defecto
 - metrics.py
 - pathlib
-- test_settings.py
+- settings.py
 - retrieval.py
 - test_chunking.py
-- Decisions
+- graph.py
 - test_quality.py
 - DocumentsConfig
 - pipeline.py
-- Tasks
-- ingest.py
+- Decisions
+- ingestion/errors.py
 - Requirement: DQ04 catálogo de valores válidos
-- pipeline.py
-- Proposal
-- documents/config.py
-- chunking.py
-- pdf_to_markdown
-- Requirement: DQ08 valores negativos
-- EmbedderError
-- apply_rules
-- QueryError
-- re
-- resolve_period
-- _query
+- json
+- Requirements
 - Embedder
+- tool_errors.py
+- Proposal
+- Requirement: DQ08 valores negativos
+- Requirement: Verificación de cifras
+- QueryError
+- ingest
+- Tasks
+- Requirement: Verificación de cifras
+- figures
+- Requirement: Pruebas con LLM separadas
 - pytest
 - ADDED Requirements
 - Requirements
 - Requirement: DQ01 registro_id único
-- DocumentsError
-- documents/config.py
+- load_agent_config
+- Benchmark de estrategias del agente (2026-10-22)
 - Proposal
-- Tasks
-- analytics/conftest.py
+- publish
+- context.py
 - Requirement: Documentos a cargar
 - Requirement: Tablas en los fragmentos
-- Design
+- Requirement: Corrección única
 - Requirement: Documentos a cargar
 - Requirement: Tablas en los fragmentos
 - Requirement: Conversión a Markdown
@@ -129,63 +129,89 @@
 - Requirement: Tablas de PDF
 - Requirement: Trazabilidad de la carga de documentos
 - Requirement: Títulos en el Markdown
+- test_llm.py
+- evidence_id
+- Requirement: Errores del proveedor y de los datos
+- Requirement: Corrección única
+- test_makefile.py
+- test_verify.py
+- Decisions
+- AgentDeps
+- write_csv
+- markdown.py
+- tools.py
+- verify.py
+- Requirement: Errores del proveedor y de los datos
+- Requirement: Verificación de citas y lenguaje
+- Requirement: Verificación de citas y lenguaje
+- Requirement: Síntesis estructurada
+- Requirement: Síntesis estructurada
+- Requirement: Contexto de la planificación
+- Requirement: Reintento y fallo cerrado
+- schema.py
+- Requirement: Validación de la pregunta
+- query-agent Specification
+- Arquitectura de Brío Analyst
+- Requirement: Contexto de la planificación
+- Requirement: Reintento y fallo cerrado
+- Requirement: Validación de la pregunta
 
 ## God Nodes (most connected - your core abstractions)
-1. `DocumentsConfig` - 87 edges
-2. `evidence_id()` - 48 edges
-3. `consultar_metrica()` - 44 edges
-4. `calidad_datos()` - 43 edges
-5. `buscar_documentos()` - 41 edges
-6. `QueryError` - 38 edges
-7. `RulesOutcome` - 38 edges
-8. `ingest()` - 38 edges
-9. `DocumentsSummary` - 36 edges
-10. `MetricResult` - 33 edges
+1. `DocumentsConfig` - 92 edges
+2. `consultar_metrica()` - 69 edges
+3. `evidence_id()` - 68 edges
+4. `AgentConfig` - 55 edges
+5. `Bases` - 53 edges
+6. `calidad_datos()` - 48 edges
+7. `buscar_documentos()` - 47 edges
+8. `QueryError` - 46 edges
+9. `build_graph()` - 45 edges
+10. `make_deps()` - 44 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Impact` --references--> `evidence_id()`  [INFERRED]
   openspec/changes/archive/2026-10-22-add-document-retrieval/proposal.md → backend/src/analyst_backend/analytics/evidence.py
+- `Scenario: Filtro como texto` --references--> `evidence_id()`  [INFERRED]
+  openspec/changes/archive/2026-10-22-add-query-agent/specs/query-agent/spec.md → backend/src/analyst_backend/analytics/evidence.py
+- `Arquitectura` --references--> `evidence_id()`  [INFERRED]
+  openspec/changes/archive/2026-10-22-add-sales-analytics/design.md → backend/src/analyst_backend/analytics/evidence.py
 - `Goals / Non-Goals` --references--> `evidence_id()`  [INFERRED]
   openspec/changes/archive/2026-10-22-add-sales-analytics/design.md → backend/src/analyst_backend/analytics/evidence.py
 - `Scenario: Alias en el filtro` --references--> `evidence_id()`  [INFERRED]
   openspec/changes/archive/2026-10-22-add-sales-analytics/specs/sales-metrics/spec.md → backend/src/analyst_backend/analytics/evidence.py
-- `7. Documentación` --references--> `evidence_id()`  [INFERRED]
-  openspec/changes/archive/2026-10-22-add-sales-analytics/tasks.md → backend/src/analyst_backend/analytics/evidence.py
-- `Scenario: Alias en el filtro` --references--> `evidence_id()`  [INFERRED]
-  openspec/specs/sales-metrics/spec.md → backend/src/analyst_backend/analytics/evidence.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (128 total, 22 thin omitted)
+## Communities (153 total, 23 thin omitted)
 
 ### Community 0 - "openspec-explore/SKILL.md"
 Cohesion: 0.17
 Nodes (11): Check for context, Ending Discovery, Guardrails, Handling Different Entry Points, OpenSpec Awareness, Planning a Change, The Stance, What You Don't Have To Do (+3 more)
 
-### Community 1 - "Arquitectura de Brío Analyst"
-Cohesion: 0.07
-Nodes (24): ai-data-assistant, Arquitectura, Comandos, Convenciones, Flujo de trabajo: Spec-Driven Development (OpenSpec), graphify, Proyecto Brío Analyst, Reglas (+16 more)
+### Community 1 - "pathlib"
+Cohesion: 0.10
+Nodes (8): LimitsConfig, ProviderConfig, _Strict, metric_description(), bases(), fake_embedder(), paths(), Paths
 
 ### Community 2 - "ADDED Requirements"
 Cohesion: 0.06
 Nodes (32): ADDED Requirements, Purpose, Requirement: Aislamiento de la suite por defecto, Requirement: Entorno Python reproducible, Requirement: Evaluación reservada, Requirement: Orquestación con contenedores, Requirement: Pruebas con LLM separadas, Requirement: Página mínima del frontend (+24 more)
 
-### Community 3 - "markdown.py"
-Cohesion: 0.10
-Nodes (11): ConversionError, collapse_spaces(), _docx_table_rows(), docx_to_markdown(), _Line, markdown_table(), _page_lines(), pdf_to_markdown() (+3 more)
+### Community 3 - "consultar_metrica"
+Cohesion: 0.09
+Nodes (28): consultar_metrica(), Requirement: Consultas fallidas sin resolver, Requirement: Planificación en una sola respuesta, Requirement: Prompts y descripciones desde configuración, Scenario: Consultas por encima del máximo, Scenario: Corrección con el máximo ocupado, Scenario: Corrección descartada, Scenario: Corrección parcial (+20 more)
 
-### Community 4 - "explore_data.py"
-Cohesion: 0.16
-Nodes (18): assign_period(), build_rules(), unit_price_outlier(), _canonical_spelling(), clean(), extract_documents(), _fmt(), load_raw() (+10 more)
+### Community 4 - "test_graph.py"
+Cohesion: 0.07
+Nodes (73): AgentConfig, run_graph(), Bases, make_deps(), tool_context(), json_message(), plan_message(), scripted() (+65 more)
 
 ### Community 10 - "explore.md"
 Cohesion: 0.18
 Nodes (10): Check for context, Ending Discovery, Guardrails, OpenSpec Awareness, Planning a Change, The Stance, What You Don't Have To Do, What You Might Do (+2 more)
 
-### Community 11 - "test_models_cli.py"
-Cohesion: 0.46
-Nodes (4): _fake_cached_model(), _make(), test_cache_with_other_fingerprint_fails_without_downloading(), test_check_without_model_points_to_make_models()
+### Community 11 - "ADDED Requirements"
+Cohesion: 0.10
+Nodes (20): ADDED Requirements, Purpose, Requirement: Clave nunca expuesta, Requirement: Errores del proveedor, Requirement: Fallos que no son del proveedor, Requirement: Parámetros del modelo en configuración, Requirement: Selección del proveedor, Scenario: Clave ausente (+12 more)
 
 ### Community 17 - "conftest.py"
 Cohesion: 0.21
@@ -193,15 +219,15 @@ Nodes (9): _blocked_connect(), _blocked_connect_ex(), _blocked_resolution(), _bl
 
 ### Community 18 - "Requirements"
 Cohesion: 0.05
-Nodes (37): project-layout Specification, Purpose, Requirement: Aislamiento de la suite por defecto, Requirement: Entorno Python reproducible, Requirement: Evaluación reservada, Requirement: Orquestación con contenedores, Requirement: Pruebas con el modelo de embeddings separadas, Requirement: Pruebas con LLM separadas (+29 more)
+Nodes (38): project-layout Specification, Purpose, Requirement: Aislamiento de la suite por defecto, Requirement: Entorno Python reproducible, Requirement: Evaluación reservada, Requirement: Orquestación con contenedores, Requirement: Pruebas con el modelo de embeddings separadas, Requirement: Pruebas con LLM separadas (+30 more)
 
 ### Community 19 - "Exploración de datos"
 Cohesion: 0.12
 Nodes (16): 01 Contexto de negocio, 03 Investigación de consumidor, 04 Observaciones de canales, 05 Reporte comercial, Aprobación de reglas, Contradicciones entre fuentes, Cómo reproducir, Documentos y afirmaciones verificables (+8 more)
 
-### Community 20 - "load_documents_config"
-Cohesion: 0.24
-Nodes (10): load_documents_config(), DocumentsConfigError, test_embedding_template_renders_with_and_without_section(), test_extensions_are_lowercased(), test_id_regexes_follow_configured_patterns(), test_invalid_config_is_rejected(), test_invalid_yaml_is_reported(), test_missing_file_is_reported() (+2 more)
+### Community 20 - "documents/config.py"
+Cohesion: 0.10
+Nodes (16): _check_regex(), EmbeddingTemplate, load_documents_config(), PdfConfig, _Strict, embedding_text(), DocumentsConfigError, test_embedding_template_renders_with_and_without_section() (+8 more)
 
 ### Community 22 - "test_app.py"
 Cohesion: 0.06
@@ -212,8 +238,8 @@ Cohesion: 0.07
 Nodes (28): data-quality Specification, Purpose, Requirement: Destino único por fila, Requirement: DQ04 catálogo de valores válidos, Requirement: DQ06 unidades faltantes, Requirement: DQ07 venta neta faltante, Requirement: DQ08 valores negativos, Requirement: DQ11 aviso de punto de venta único (+20 more)
 
 ### Community 24 - "Decisions"
-Cohesion: 0.11
-Nodes (17): config(), Alcance del bloqueo de red, Contenedores, Context, D2' Código fuente en `backend/src/` y `frontend/src/` (reemplaza D2), D4 Workspace de uv con un único `uv.lock`, Decisions, Design (+9 more)
+Cohesion: 0.12
+Nodes (16): Alcance del bloqueo de red, Contenedores, Context, D2' Código fuente en `backend/src/` y `frontend/src/` (reemplaza D2), D4 Workspace de uv con un único `uv.lock`, Decisions, Design, Goals / Non-Goals (+8 more)
 
 ### Community 25 - "Proposal"
 Cohesion: 0.22
@@ -228,32 +254,32 @@ Cohesion: 0.33
 Nodes (5): Almena Foods | Contexto de negocio, Convenciones de análisis, Diccionario de la base de ventas, Información disponible, Situación
 
 ### Community 33 - "rules.py"
-Cohesion: 0.14
-Nodes (16): apply_catalog(), _as_number(), _check_integer(), check_month(), check_negative(), check_sales(), check_sales_without_units(), check_units() (+8 more)
+Cohesion: 0.13
+Nodes (19): apply_rules(), apply_catalog(), _as_number(), _check_integer(), check_month(), check_negative(), check_sales(), check_sales_without_units() (+11 more)
 
 ### Community 34 - "ADDED Requirements"
 Cohesion: 0.06
 Nodes (35): ADDED Requirements, Purpose, Requirement: Carga atómica, Requirement: Carga del CSV a DuckDB, Requirement: Comando de ingesta, Requirement: Cuadre de filas, Requirement: Descripción del esquema, Requirement: Esquema de la tabla de ventas (+27 more)
 
 ### Community 35 - "test_rules.py"
-Cohesion: 0.08
-Nodes (25): paths(), Paths, valid_row(), write_csv(), frame_of(), _frame(), real_frame(), test_dq01_compares_after_trimming() (+17 more)
+Cohesion: 0.14
+Nodes (19): frame_of(), real_frame(), test_dq01_compares_after_trimming(), test_dq01_duplicate_with_differences(), test_dq01_real_file_identical_duplicate(), test_dq03_keeps_inner_spaces(), test_dq03_real_file_trims_region_and_channel(), test_dq04_catalog_comes_from_configuration() (+11 more)
 
-### Community 36 - "ingest"
-Cohesion: 0.08
-Nodes (38): ValidationFailedError, ingest(), IngestionSummary, _non_empty_text(), sales_schema(), validate_sales(), _make_ingest(), _rows() (+30 more)
+### Community 36 - "test_storage.py"
+Cohesion: 0.16
+Nodes (22): ingest(), IngestionSummary, IngestionSettings, con(), previous_db(), real_db(), _settings(), _sha() (+14 more)
 
 ### Community 37 - "test_pipeline.py"
-Cohesion: 0.05
-Nodes (54): RulesOutcome, test_missing_directory_fails_with_its_path_even_without_model(), _issue(), _issues(), real(), run(), test_actions_by_severity_in_real_file(), test_dq01_duplicate_with_differences_keeps_line_2_in_sales() (+46 more)
+Cohesion: 0.12
+Nodes (35): RulesOutcome, _issue(), _issues(), real(), run(), test_actions_by_severity_in_real_file(), test_dq01_duplicate_with_differences_keeps_line_2_in_sales(), test_dq01_first_occurrence_invalid_keeps_id_out_of_sales() (+27 more)
 
 ### Community 38 - "Requirements"
 Cohesion: 0.06
 Nodes (35): Purpose, Requirement: Carga atómica, Requirement: Carga del CSV a DuckDB, Requirement: Comando de ingesta, Requirement: Cuadre de filas, Requirement: Descripción del esquema, Requirement: Esquema de la tabla de ventas, Requirement: Idempotencia (+27 more)
 
 ### Community 39 - "test_metrics.py"
-Cohesion: 0.18
-Nodes (30): MetricResult, _by_group(), _comparison(), run(), _single(), test_alias_gives_same_rows_and_evidence(), test_brand_by_region_in_t1(), test_comparison_against_period_without_data() (+22 more)
+Cohesion: 0.08
+Nodes (45): MetricQuery, MetricResult, layer(), real_db(), RealDatabase, _by_group(), _comparison(), run() (+37 more)
 
 ### Community 40 - "Decisions"
 Cohesion: 0.12
@@ -272,12 +298,12 @@ Cohesion: 0.25
 Nodes (7): Capabilities, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
 
 ### Community 44 - "catalog.py"
-Cohesion: 0.17
-Nodes (17): Catalog, load_catalog(), load_quality_config(), parse_catalog(), parse_quality_config(), _parse_yaml(), QualityConfig, read_config_bytes() (+9 more)
+Cohesion: 0.20
+Nodes (16): load_catalog(), load_quality_config(), parse_catalog(), parse_quality_config(), _parse_yaml(), QualityConfig, read_config_bytes(), ConfigError (+8 more)
 
 ### Community 45 - "semantic.py"
-Cohesion: 0.15
-Nodes (23): AggregateMetric, Dimension, _load_dimension(), _load_metric(), load_semantic_layer(), RatioMetric, SemanticLayerError, _text() (+15 more)
+Cohesion: 0.16
+Nodes (20): _load_dimension(), _load_metric(), load_semantic_layer(), SemanticLayerError, _text(), validate_expression(), _layer(), _metric() (+12 more)
 
 ### Community 46 - "ADDED Requirements"
 Cohesion: 0.05
@@ -295,9 +321,9 @@ Nodes (24): ADDED Requirements, Purpose, Requirement: Alias y escritura de los v
 Cohesion: 0.08
 Nodes (24): Purpose, Requirement: Alias y escritura de los valores, Requirement: Dimensiones consultables, Requirement: Expresiones de métricas seguras, Requirement: Expresiones de período, Requirement: Métricas definidas en configuración, Requirements, Scenario: Alias de la marca (+16 more)
 
-### Community 50 - "evidence_id"
-Cohesion: 0.06
-Nodes (55): canonical_json(), evidence_id(), consultar_metrica(), calidad_datos(), Componentes, Decisiones, Fuera de alcance, Requirement: Trazabilidad de la búsqueda (+47 more)
+### Community 50 - "Requirement: Errores del proveedor"
+Cohesion: 0.10
+Nodes (20): llm-provider Specification, Purpose, Requirement: Clave nunca expuesta, Requirement: Errores del proveedor, Requirement: Fallos que no son del proveedor, Requirement: Parámetros del modelo en configuración, Requirement: Selección del proveedor, Requirements (+12 more)
 
 ### Community 51 - "ADDED Requirements"
 Cohesion: 0.05
@@ -308,136 +334,128 @@ Cohesion: 0.05
 Nodes (37): document-retrieval Specification, Purpose, Requirement: Acceso de solo lectura a la base de documentos, Requirement: Búsqueda híbrida, Requirement: Contenido documental como evidencia, Requirement: Degradación a BM25, Requirement: Filtros, Requirement: Normalización del texto para BM25 (+29 more)
 
 ### Community 53 - "ingest_documents"
-Cohesion: 0.19
-Nodes (17): ingest_documents(), documents_settings(), _copy_raw(), _empty_pdf(), _rows(), test_double_load_is_identical(), test_errors_keep_an_existing_database(), test_every_chunk_has_a_384_value_embedding() (+9 more)
+Cohesion: 0.16
+Nodes (20): ingest_documents(), DocumentsSettings, documents_settings(), fake_embedder(), _copy_raw(), _empty_pdf(), _rows(), test_double_load_is_identical() (+12 more)
 
 ### Community 54 - "Requirement: Estructura de las incidencias"
 Cohesion: 0.29
 Nodes (6): MODIFIED Requirements, Requirement: Estructura de las incidencias, Scenario: Columnas de dq_issues, Scenario: Dimensiones de una fila excluida, Scenario: Dimensión normalizada, Spec Delta
 
 ### Community 55 - "open_readonly"
-Cohesion: 0.16
-Nodes (12): _check_schema(), DatabaseError, open_readonly(), published_ingestion_id(), _sha(), test_external_access_and_configuration_are_rejected(), test_missing_database_asks_for_ingest(), test_old_database_without_issue_dimensions_asks_for_ingest() (+4 more)
-
-### Community 56 - "settings.py"
 Cohesion: 0.17
-Nodes (11): main(), AnalyticsSettings, IngestionSettings, load_analytics_settings(), load_ingestion_settings(), load_models_settings(), ModelsSettings, _read_paths() (+3 more)
+Nodes (11): _check_schema(), DatabaseError, open_readonly(), published_ingestion_id(), _sha(), test_external_access_and_configuration_are_rejected(), test_missing_database_asks_for_ingest(), test_old_database_without_issue_dimensions_asks_for_ingest() (+3 more)
 
-### Community 57 - "publish"
-Cohesion: 0.20
-Nodes (5): publish(), _quote(), _replace_keeping_old_wal_until_done(), _temporary_files(), write_tables()
+### Community 56 - "ADDED Requirements"
+Cohesion: 0.14
+Nodes (13): ADDED Requirements, Purpose, Requirement: Argumentos tolerantes, Requirement: Comando de consulta, Requirement: Evidencia válida y avisos, Requirement: Sin evidencia, sin síntesis, Requirement: Traza por pregunta, Scenario: Clave vacía (+5 more)
 
-### Community 58 - "documents/errors.py"
-Cohesion: 0.22
-Nodes (7): SourceError, list_documents(), test_directory_without_documents(), test_duplicated_doc_id_is_rejected(), test_ignored_files(), test_missing_directory_names_the_path(), test_real_directory_loads_the_four_documents()
+### Community 57 - "calidad_datos"
+Cohesion: 0.10
+Nodes (26): calidad_datos(), Componentes, Decisiones, Fuera de alcance, Why, Capabilities, Fuera de alcance, Impact (+18 more)
+
+### Community 58 - "ingest.py"
+Cohesion: 0.11
+Nodes (14): SourceError, documents_ingestion_id(), _file_sha256(), list_documents(), _ddl(), LoadedDocument, _quote(), RunRecord (+6 more)
 
 ### Community 59 - "Requirement: Aislamiento de la suite por defecto"
 Cohesion: 0.12
 Nodes (16): ADDED Requirements, MODIFIED Requirements, Requirement: Aislamiento de la suite por defecto, Requirement: Pruebas con el modelo de embeddings separadas, Requirement: Suite de pruebas sin servicios externos, Scenario: Caché de modelos en pruebas embeddings, Scenario: Credenciales ausentes, Scenario: DNS y envío UDP bloqueados (+8 more)
 
 ### Community 60 - "metrics.py"
-Cohesion: 0.15
-Nodes (20): _comparison_cell(), make_row(), _describe(), _issue_filter(), _metric_values(), Plan, _quality_notes(), _round() (+12 more)
+Cohesion: 0.11
+Nodes (25): MetricToolInput, build_sql(), _comparison_cell(), make_row(), _describe(), _issue_filter(), _metric_values(), Plan (+17 more)
 
 ### Community 61 - "pathlib"
-Cohesion: 0.23
-Nodes (5): config_path_real(), fake_config(), fake_config_path(), fake_db(), write_config()
+Cohesion: 0.28
+Nodes (6): config(), config_path_real(), fake_config(), fake_config_path(), fake_db(), write_config()
 
-### Community 62 - "test_settings.py"
-Cohesion: 0.19
-Nodes (9): test_absolute_paths_are_kept(), test_analytics_missing_variable_is_named(), test_analytics_settings_read_two_paths(), test_blank_variable_counts_as_missing(), test_documents_missing_variable_is_named(), test_documents_settings_read_four_paths(), test_missing_variable_is_named(), test_reads_process_environment_by_default() (+1 more)
+### Community 62 - "settings.py"
+Cohesion: 0.07
+Nodes (31): main(), AgentSettings, AnalyticsSettings, load_agent_settings(), load_analytics_settings(), load_documents_settings(), load_ingestion_settings(), load_llm_settings() (+23 more)
 
 ### Community 63 - "retrieval.py"
 Cohesion: 0.10
-Nodes (19): _config(), DocumentHit, DocumentQuery, DocumentResult, SearchWarning, _Strict, buscar_documentos(), _check_filters() (+11 more)
+Nodes (18): _config(), DocumentHit, DocumentQuery, DocumentResult, SearchWarning, _Strict, buscar_documentos(), _check_filters() (+10 more)
 
 ### Community 64 - "test_chunking.py"
-Cohesion: 0.14
-Nodes (26): Chunk, _by_primary(), _chunk_all(), chunks(), _md(), test_configurable_patterns(), test_empty_section_is_discarded(), test_field_records_are_one_chunk_per_row() (+18 more)
+Cohesion: 0.08
+Nodes (41): _blocks(), _cells(), Chunk, chunk_markdown(), open_draft(), starting_id(), _Draft, _is_code() (+33 more)
 
-### Community 65 - "Decisions"
-Cohesion: 0.14
-Nodes (12): Almacenamiento, Arquitectura, Configuración y comandos, Context, D7a: convertir PDF y Word a Markdown con código propio, y fragmentar solo Markdown, D7b: fragmentador de Markdown, Decisions, Design (+4 more)
+### Community 65 - "graph.py"
+Cohesion: 0.07
+Nodes (41): evidence_items(), index(), metric_has_values(), AgentState, build_graph(), check_question(), collect(), execute() (+33 more)
 
 ### Community 66 - "test_quality.py"
-Cohesion: 0.17
-Nodes (17): QualityQuery, QualityResult, layer(), _run(), _ids(), run(), _run(), test_brand_in_south() (+9 more)
+Cohesion: 0.19
+Nodes (15): QualityQuery, QualityResult, _ids(), run(), _run(), test_brand_in_south(), test_corrections_listed_on_request(), test_missing_ingestion_counts_raise_instead_of_zeros() (+7 more)
 
 ### Community 67 - "DocumentsConfig"
-Cohesion: 0.19
-Nodes (32): DocumentsConfig, DocumentsSummary, fake_embedder(), _codes(), _ids_and_scores(), _lexical(), _primaries(), _QueryFailingEmbedder (+24 more)
+Cohesion: 0.12
+Nodes (41): DocumentsConfig, DocumentsSummary, _codes(), _error_fields(), _ids_and_scores(), _lexical(), _primaries(), _query() (+33 more)
 
 ### Community 68 - "pipeline.py"
-Cohesion: 0.30
-Nodes (9): read_sales_csv(), test_columns_in_another_order_are_accepted(), test_extra_column_is_named(), test_header_only_is_rejected(), test_latin1_file_is_rejected(), test_missing_column_is_named(), test_missing_file_names_the_path(), test_real_file_reads_all_rows_with_physical_lines() (+1 more)
+Cohesion: 0.12
+Nodes (19): InputError, _check_header(), compute_ingestion_id(), _corrected_frame(), _issues_frame(), parse_sales_csv(), read_csv_bytes(), read_sales_csv() (+11 more)
 
-### Community 69 - "Tasks"
-Cohesion: 0.15
-Nodes (9): LuceneBM25, Recuperación, 10. Correcciones de la verificación, 2. Documentos a cargar, 4. Fragmentación, 6. Base de documentos, 8. Documentación, 9. Cierre (+1 more)
+### Community 69 - "Decisions"
+Cohesion: 0.17
+Nodes (9): LuceneBM25, Arquitectura, Configuración y comandos, D7a: convertir PDF y Word a Markdown con código propio, y fragmentar solo Markdown, D7b: fragmentador de Markdown, Decisions, Pruebas, Recuperación (+1 more)
 
-### Community 70 - "ingest.py"
-Cohesion: 0.18
-Nodes (7): documents_ingestion_id(), _file_sha256(), _ddl(), LoadedDocument, _quote(), RunRecord, write_tables()
+### Community 70 - "ingestion/errors.py"
+Cohesion: 0.21
+Nodes (4): IngestionError, ReconciliationError, main(), check_reconciliation()
 
 ### Community 71 - "Requirement: DQ04 catálogo de valores válidos"
 Cohesion: 0.50
 Nodes (4): Requirement: DQ04 catálogo de valores válidos, Scenario: Catálogo leído de configuración, Scenario: Marca en mayúsculas del archivo real, Scenario: Valor fuera del catálogo
 
-### Community 72 - "pipeline.py"
-Cohesion: 0.16
-Nodes (8): IngestionError, InputError, ReconciliationError, _check_header(), check_reconciliation(), compute_ingestion_id(), parse_sales_csv(), read_csv_bytes()
+### Community 72 - "json"
+Cohesion: 0.18
+Nodes (12): build_tools(), ToolContext, _call(), _run_tool_node(), test_document_summary_has_citable_fragments(), test_format_tool_error_for_query_error(), test_handler_reports_invalid_arguments_and_query_errors(), test_metric_summary_and_full_artifact() (+4 more)
 
-### Community 73 - "Proposal"
-Cohesion: 0.29
-Nodes (6): Capabilities, Fuera de alcance, Impact, Modified Capabilities, Proposal, Why
+### Community 73 - "Requirements"
+Cohesion: 0.18
+Nodes (11): Requirement: Argumentos tolerantes, Requirement: Comando de consulta, Requirement: Evidencia válida y avisos, Requirement: Sin evidencia, sin síntesis, Requirement: Traza por pregunta, Requirements, Scenario: Clave vacía, Scenario: Dos preguntas con las mismas dependencias (+3 more)
 
-### Community 74 - "documents/config.py"
+### Community 74 - "Embedder"
+Cohesion: 0.06
+Nodes (28): ModelConfig, cached_model_file(), check_embedder(), Embedder, FailingEmbedder, FakeEmbedder, FastEmbedEmbedder, file_sha256() (+20 more)
+
+### Community 76 - "Proposal"
 Cohesion: 0.25
-Nodes (6): ModelConfig, cached_model_file(), file_sha256(), _download(), main(), _verify()
-
-### Community 75 - "chunking.py"
-Cohesion: 0.16
-Nodes (13): _blocks(), _cells(), chunk_markdown(), open_draft(), starting_id(), _Draft, _is_code(), _is_table() (+5 more)
-
-### Community 76 - "pdf_to_markdown"
-Cohesion: 0.17
-Nodes (16): to_markdown(), SourceFile, _pdf(), test_damaged_file_names_the_file(), test_every_supported_extension_has_a_converter(), test_line_repeated_on_a_single_page_is_kept(), test_markdown_file_is_returned_as_is(), test_pdf_cell_with_several_lines() (+8 more)
+Nodes (7): Capabilities, Fuera de alcance, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes
 
 ### Community 77 - "Requirement: DQ08 valores negativos"
 Cohesion: 0.67
 Nodes (3): Requirement: DQ08 valores negativos, Scenario: Cero no es negativo, Scenario: Negativos del archivo real
 
-### Community 78 - "EmbedderError"
-Cohesion: 0.16
-Nodes (4): FailingEmbedder, FastEmbedEmbedder, EmbedderError, D7c: embeddings con fastembed MiniLM detrás de `Embedder`
+### Community 78 - "Requirement: Verificación de cifras"
+Cohesion: 0.25
+Nodes (8): Requirement: Verificación de cifras, Scenario: Caída expresada sin signo, Scenario: Cifra citada con un fragmento que no la contiene, Scenario: Cifra de cuatro dígitos sin respaldo, Scenario: Cifra del reporte citada con su fragmento, Scenario: Cifra del reporte presentada como dato de ventas, Scenario: Cifra junto al nombre de un documento, Scenario: Nombre de documento en la afirmación
 
-### Community 79 - "apply_rules"
-Cohesion: 0.23
-Nodes (9): apply_rules(), _corrected_frame(), _issues_frame(), _reason(), _review_frame(), _sales_frame(), Issue, _run() (+1 more)
+### Community 79 - "QueryError"
+Cohesion: 0.10
+Nodes (18): build_plan(), resolve_filters(), QueryError, _months(), normalize_period(), resolve_period(), _condition(), _normalize() (+10 more)
 
-### Community 80 - "QueryError"
-Cohesion: 0.17
-Nodes (7): build_plan(), build_sql(), resolve_filters(), QueryError, _normalize(), SemanticLayer, test_query_error_is_structured()
+### Community 80 - "ingest"
+Cohesion: 0.27
+Nodes (12): _make_ingest(), _rows(), _settings(), test_columns_in_another_order_load_completely(), test_csv_without_bom_gives_same_sales(), test_failed_replace_restores_previous_wal(), test_make_ingest_publishes_the_database(), test_make_ingest_reports_errors() (+4 more)
 
-### Community 81 - "re"
-Cohesion: 0.15
-Nodes (11): MetricQuery, test_semantic_layer_change_changes_evidence(), test_ties_share_rank(), test_evidence_id_changes_with_each_input(), test_evidence_id_format_and_determinism(), test_limit_must_be_positive(), test_metrics_cannot_be_empty(), test_one_of_period_or_compare_is_required() (+3 more)
+### Community 81 - "Tasks"
+Cohesion: 0.25
+Nodes (7): 2. Dimensiones en dq_issues (requisito MODIFIED "Estructura de las incidencias"), 3. Capa semántica, 5. consultar_metrica, 6. calidad_datos, 7. Documentación, 8. Cierre, Tasks
 
-### Community 82 - "resolve_period"
-Cohesion: 0.13
-Nodes (12): quote_identifier(), is_valid_month(), _months(), normalize_period(), resolve_period(), _condition(), test_invalid_forms_list_valid_forms(), test_is_valid_month() (+4 more)
+### Community 82 - "Requirement: Verificación de cifras"
+Cohesion: 0.25
+Nodes (8): Requirement: Verificación de cifras, Scenario: Caída expresada sin signo, Scenario: Cifra citada con un fragmento que no la contiene, Scenario: Cifra de cuatro dígitos sin respaldo, Scenario: Cifra del reporte citada con su fragmento, Scenario: Cifra del reporte presentada como dato de ventas, Scenario: Cifra junto al nombre de un documento, Scenario: Nombre de documento en la afirmación
 
-### Community 83 - "_query"
-Cohesion: 0.21
-Nodes (8): open_documents_db(), _error_fields(), _query(), test_empty_query_is_rejected(), test_external_access_and_configuration_are_rejected(), test_too_long_query_is_rejected(), test_top_k_out_of_range(), test_write_attempt_is_rejected()
-
-### Community 84 - "Embedder"
-Cohesion: 0.20
-Nodes (4): Embedder, FakeEmbedder, real_model_db(), 5. Embeddings y modelo
+### Community 84 - "Requirement: Pruebas con LLM separadas"
+Cohesion: 0.29
+Nodes (6): MODIFIED Requirements, Requirement: Pruebas con LLM separadas, Scenario: Archivo de entorno inexistente, Scenario: Ninguna prueba llm registrada, Scenario: Solo pruebas llm, Spec Delta
 
 ### Community 85 - "pytest"
-Cohesion: 0.09
-Nodes (20): check_embedder(), rrf_fuse(), test_document_with_only_headings_fails(), test_different_dimension_shows_both(), test_different_fingerprint_shows_both(), test_different_model_name(), test_embedding_text_uses_title_and_section(), test_fake_embedder_matches_its_config() (+12 more)
+Cohesion: 0.13
+Nodes (11): rrf_fuse(), test_chunk_without_word_match_counts_only_similarity(), test_query_requires_the_config_in_context(), test_rrf_fusion_of_two_rankings(), test_dns_resolution_fails_with_explicit_error(), test_embeddings_tests_keep_only_models_cache_dir(), test_env_example_variables_are_hidden(), test_local_unix_sockets_keep_native_behaviour() (+3 more)
 
 ### Community 86 - "ADDED Requirements"
 Cohesion: 0.18
@@ -451,21 +469,25 @@ Nodes (11): Requirement: Comando de ingesta de documentos, Requirement: Descarga
 Cohesion: 0.50
 Nodes (4): Requirement: DQ01 registro_id único, Scenario: Duplicado con diferencias, Scenario: Duplicado idéntico del archivo real, Scenario: Primera aparición no válida
 
-### Community 89 - "DocumentsError"
-Cohesion: 0.24
-Nodes (5): DocumentsError, main(), DocumentsSettings, load_documents_settings(), 1. Dependencias, configuración y suite
+### Community 89 - "load_agent_config"
+Cohesion: 0.19
+Nodes (9): AgentConfigError, load_agent_config(), agent_config(), test_invalid_config_is_rejected(), test_missing_file(), test_real_config_loads(), test_temperature_by_longest_prefix(), _write() (+1 more)
 
-### Community 90 - "documents/config.py"
-Cohesion: 0.16
-Nodes (5): _check_regex(), EmbeddingTemplate, PdfConfig, _Strict, embedding_text()
+### Community 90 - "Benchmark de estrategias del agente (2026-10-22)"
+Cohesion: 0.33
+Nodes (5): Benchmark de estrategias del agente (2026-10-22), Estrategias, Preguntas, Resultados: Gemini (capa gratuita, Gemini 3 Flash), Resultados: modelos locales (Ollama, 190 ejecuciones)
 
 ### Community 91 - "Proposal"
 Cohesion: 0.22
 Nodes (8): Capabilities, Fuera de alcance, Impact, Modified Capabilities, New Capabilities, Proposal, What Changes, Why
 
-### Community 92 - "Tasks"
-Cohesion: 0.29
-Nodes (6): 2. Dimensiones en dq_issues (requisito MODIFIED "Estructura de las incidencias"), 3. Capa semántica, 6. calidad_datos, 7. Documentación, 8. Cierre, Tasks
+### Community 92 - "publish"
+Cohesion: 0.12
+Nodes (11): publish(), _quote(), _replace_keeping_old_wal_until_done(), _temporary_files(), write_tables(), Almacenamiento, Context, Design (+3 more)
+
+### Community 93 - "context.py"
+Cohesion: 0.13
+Nodes (17): build_planning_context(), catalog_text(), data_range(), DataRange, _document_rows(), PlanningContext, evidence_block(), hedge_examples() (+9 more)
 
 ### Community 94 - "Requirement: Documentos a cargar"
 Cohesion: 0.33
@@ -475,9 +497,9 @@ Nodes (6): Requirement: Documentos a cargar, Scenario: Archivo dañado, Scenario
 Cohesion: 0.33
 Nodes (6): Requirement: Tablas en los fragmentos, Scenario: ID repetido en una tabla, Scenario: Registros de campo, Scenario: Tabla con IDs ya divididos, Scenario: Tabla sin IDs, Scenario: Índice de referencias
 
-### Community 96 - "Design"
+### Community 96 - "Requirement: Corrección única"
 Cohesion: 0.33
-Nodes (5): Context, Design, Goals / Non-Goals, Migration Plan, Risks / Trade-offs
+Nodes (6): Requirement: Corrección única, Scenario: Argumentos inválidos, Scenario: Consulta descartada y consulta fallida, Scenario: Corrección que vuelve a fallar, Scenario: Corrección sin texto de documentos, Scenario: Marca inexistente
 
 ### Community 97 - "Requirement: Documentos a cargar"
 Cohesion: 0.33
@@ -583,25 +605,125 @@ Nodes (3): Requirement: Trazabilidad de la carga de documentos, Scenario: Archiv
 Cohesion: 0.67
 Nodes (3): Requirement: Títulos en el Markdown, Scenario: Título de página fuera del texto, Scenario: Títulos que no abren sección
 
+### Community 126 - "test_llm.py"
+Cohesion: 0.07
+Nodes (21): GeminiConfig, build_chat_model(), build_llm_client(), _error_code(), _is_retryable(), LLMClient, make_rate_limiter(), ProviderError (+13 more)
+
+### Community 127 - "evidence_id"
+Cohesion: 0.09
+Nodes (30): canonical_json(), evidence_id(), Requirement: Trazabilidad de la búsqueda, Scenario: Cambio de modo, Scenario: Espacios y tildes, Scenario: Misma búsqueda, Requirement: Respuesta con el modelo real, Requirement: Respuesta y traza (+22 more)
+
+### Community 128 - "Requirement: Errores del proveedor y de los datos"
+Cohesion: 0.33
+Nodes (6): Requirement: Errores del proveedor y de los datos, Scenario: Base de ventas ausente, Scenario: Clave fuera de la traza, Scenario: Cuota agotada al planificar, Scenario: Cuota agotada al sintetizar, Scenario: Fallo interno
+
+### Community 129 - "Requirement: Corrección única"
+Cohesion: 0.33
+Nodes (6): Requirement: Corrección única, Scenario: Argumentos inválidos, Scenario: Consulta descartada y consulta fallida, Scenario: Corrección que vuelve a fallar, Scenario: Corrección sin texto de documentos, Scenario: Marca inexistente
+
+### Community 130 - "test_makefile.py"
+Cohesion: 0.07
+Nodes (25): test_empty_key(), test_missing_directory_fails_with_its_path_even_without_model(), _fake_cached_model(), _make(), test_cache_with_other_fingerprint_fails_without_downloading(), test_check_without_model_points_to_make_models(), _compose_config(), resolved() (+17 more)
+
+### Community 131 - "test_verify.py"
+Cohesion: 0.16
+Nodes (22): check(), run(), fact(), _hits(), hypothesis(), run_evidence(), test_causal_language_in_a_fact(), test_claim_without_citation() (+14 more)
+
+### Community 132 - "Decisions"
+Cohesion: 0.11
+Nodes (17): Arquitectura, Avisos de calidad, Conexión de solo lectura, Context, Decisions, Design, Evidencia y trazabilidad, Generación de SQL (+9 more)
+
+### Community 133 - "AgentDeps"
+Cohesion: 0.09
+Nodes (20): _claim(), main(), render(), AgentDeps, answer_question(), build_deps(), test_invalid_configuration_is_a_response(), test_llm_configuration_is_checked_before_the_paths() (+12 more)
+
+### Community 134 - "write_csv"
+Cohesion: 0.22
+Nodes (4): valid_row(), write_csv(), _run(), _frame()
+
+### Community 135 - "markdown.py"
+Cohesion: 0.05
+Nodes (44): assign_period(), build_rules(), unit_price_outlier(), _canonical_spelling(), clean(), extract_documents(), _fmt(), load_raw() (+36 more)
+
+### Community 136 - "tools.py"
+Cohesion: 0.15
+Nodes (16): _as_list(), _as_list_values(), documents_tool(), metric_tool(), quality_tool(), _cells(), document_summary(), DocumentToolInput (+8 more)
+
+### Community 137 - "verify.py"
+Cohesion: 0.20
+Nodes (12): Evidence, _contains_phrase(), figures_in(), _plain(), _pool(), Problem, _readings(), _strip_non_figures() (+4 more)
+
+### Community 138 - "Requirement: Errores del proveedor y de los datos"
+Cohesion: 0.33
+Nodes (6): Requirement: Errores del proveedor y de los datos, Scenario: Base de ventas ausente, Scenario: Clave fuera de la traza, Scenario: Cuota agotada al planificar, Scenario: Cuota agotada al sintetizar, Scenario: Fallo interno
+
+### Community 139 - "Requirement: Verificación de citas y lenguaje"
+Cohesion: 0.40
+Nodes (5): Requirement: Verificación de citas y lenguaje, Scenario: Cita inexistente, Scenario: Hipótesis sin atenuar, Scenario: ID citado dentro de un fragmento, Scenario: Lenguaje causal en un hecho
+
+### Community 140 - "Requirement: Verificación de citas y lenguaje"
+Cohesion: 0.40
+Nodes (5): Requirement: Verificación de citas y lenguaje, Scenario: Cita inexistente, Scenario: Hipótesis sin atenuar, Scenario: ID citado dentro de un fragmento, Scenario: Lenguaje causal en un hecho
+
+### Community 141 - "Requirement: Síntesis estructurada"
+Cohesion: 0.50
+Nodes (4): Requirement: Síntesis estructurada, Scenario: Delimitador dentro de un fragmento, Scenario: Documentos delimitados, Scenario: Síntesis no interpretable
+
+### Community 142 - "Requirement: Síntesis estructurada"
+Cohesion: 0.50
+Nodes (4): Requirement: Síntesis estructurada, Scenario: Delimitador dentro de un fragmento, Scenario: Documentos delimitados, Scenario: Síntesis no interpretable
+
+### Community 143 - "Requirement: Contexto de la planificación"
+Cohesion: 0.67
+Nodes (3): Requirement: Contexto de la planificación, Scenario: Catálogo desde configuración, Scenario: Rango de datos real
+
+### Community 144 - "Requirement: Reintento y fallo cerrado"
+Cohesion: 0.67
+Nodes (3): Requirement: Reintento y fallo cerrado, Scenario: Corrección tras el reintento, Scenario: Fallo cerrado
+
+### Community 145 - "schema.py"
+Cohesion: 0.18
+Nodes (6): Catalog, ValidationFailedError, _non_empty_text(), sales_schema(), validate_sales(), test_pandera_names_the_failing_column()
+
+### Community 146 - "Requirement: Validación de la pregunta"
+Cohesion: 0.67
+Nodes (3): Requirement: Validación de la pregunta, Scenario: Pregunta demasiado larga, Scenario: Pregunta vacía
+
+### Community 148 - "Arquitectura de Brío Analyst"
+Cohesion: 0.08
+Nodes (20): ai-data-assistant, Arquitectura, Comandos, Convenciones, Flujo de trabajo: Spec-Driven Development (OpenSpec), graphify, Proyecto Brío Analyst, Reglas (+12 more)
+
+### Community 149 - "Requirement: Contexto de la planificación"
+Cohesion: 0.67
+Nodes (3): Requirement: Contexto de la planificación, Scenario: Catálogo desde configuración, Scenario: Rango de datos real
+
+### Community 150 - "Requirement: Reintento y fallo cerrado"
+Cohesion: 0.67
+Nodes (3): Requirement: Reintento y fallo cerrado, Scenario: Corrección tras el reintento, Scenario: Fallo cerrado
+
+### Community 151 - "Requirement: Validación de la pregunta"
+Cohesion: 0.67
+Nodes (3): Requirement: Validación de la pregunta, Scenario: Pregunta demasiado larga, Scenario: Pregunta vacía
+
 ## Knowledge Gaps
 - **2 isolated node(s):** `analyst-backend`, `analyst-frontend`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 856 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **22 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1103 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Embedder` connect `Embedder` to `DocumentsConfig`, `Requirement: Embeddings de los fragmentos`, `ingest.py`, `Requirement: Embeddings de los fragmentos`, `EmbedderError`, `evidence_id`, `ADDED Requirements`, `Requirements`, `pytest`, `ingest_documents`, `documents/config.py`, `Proposal`, `retrieval.py`?**
-  _High betweenness centrality (0.133) - this node is a cross-community bridge._
-- **Are the 74 inferred relationships involving `DocumentsConfig` (e.g. with `chunk_markdown()` and `to_markdown()`) actually correct?**
-  _`DocumentsConfig` has 74 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `Embedder` connect `Embedder` to `pathlib`, `DocumentsConfig`, `Requirement: Embeddings de los fragmentos`, `AgentDeps`, `Requirement: Embeddings de los fragmentos`, `json`, `ADDED Requirements`, `Requirements`, `ingest_documents`, `calidad_datos`, `ingest.py`, `Proposal`, `retrieval.py`?**
+  _High betweenness centrality (0.099) - this node is a cross-community bridge._
+- **Are the 77 inferred relationships involving `DocumentsConfig` (e.g. with `AgentDeps` and `ToolContext`) actually correct?**
+  _`DocumentsConfig` has 77 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `analyst-backend`, `analyst-frontend` to the rest of the system?**
   _2 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Arquitectura de Brío Analyst` be split into smaller, more focused modules?**
-  _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._
-- **Why does `Issue` connect `apply_rules` to `rules.py`, `.action`?**
-  _High betweenness centrality (0.119) - this node is a cross-community bridge._
-- **Are the 36 inferred relationships involving `evidence_id()` (e.g. with `Componentes` and `Decisiones`) actually correct?**
-  _`evidence_id()` has 36 INFERRED edges - model-reasoned connections that need verification._
+- **Should `pathlib` be split into smaller, more focused modules?**
+  _Cohesion score 0.09830866807610994 - nodes in this community are weakly interconnected._
+- **Why does `buscar_documentos()` connect `retrieval.py` to `pathlib`, `graph.py`, `DocumentsConfig`, `consultar_metrica`, `Decisions`, `json`, `tools.py`, `Embedder`, `QueryError`, `ADDED Requirements`, `Requirements`, `pytest`, `open_readonly`, `calidad_datos`, `Proposal`, `evidence_id`?**
+  _High betweenness centrality (0.071) - this node is a cross-community bridge._
+- **Are the 50 inferred relationships involving `consultar_metrica()` (e.g. with `ComparisonCell` and `MetricCell`) actually correct?**
+  _`consultar_metrica()` has 50 INFERRED edges - model-reasoned connections that need verification._
 - **Should `ADDED Requirements` be split into smaller, more focused modules?**
   _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._

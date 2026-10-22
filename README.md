@@ -28,15 +28,35 @@ cp .env.example .env   # completa las variables; .env nunca se versiona
 |---------|----------|
 | `make help` | Lista los objetivos disponibles. |
 | `make test` | Pruebas sin LLM, modelo de embeddings, red ni credenciales (excluye `@pytest.mark.llm` y `@pytest.mark.embeddings`). |
-| `make test-llm` | Solo pruebas marcadas `@pytest.mark.llm`; requieren red y credenciales. |
+| `make test-llm` | Solo pruebas marcadas `@pytest.mark.llm`; requieren red y credenciales en `ENV_FILE`. `LLM_TESTS` limita las rutas (por ejemplo, `LLM_TESTS=backend/tests/agent/test_gemini.py`). |
 | `make test-embeddings` | Solo pruebas marcadas `@pytest.mark.embeddings`, con el modelo de embeddings real y sin red; requiere `make models`. |
 | `make ingest` | Carga `data/raw/02_Ventas_2026.csv` en `data/processed/analytics.duckdb` aplicando las reglas de calidad. Rutas configurables con `SALES_CSV_PATH`, `DUCKDB_PATH`, `SEMANTIC_LAYER_PATH` y `DATA_QUALITY_PATH`. |
 | `make models` | Descarga una vez el modelo de embeddings (~240 MB) en `MODELS_CACHE_DIR` (`.cache/models`) y comprueba su huella. |
 | `make ingest-docs` | Convierte a Markdown y fragmenta los documentos de `data/raw/` y publica `data/processed/documents.duckdb` con sus embeddings. Rutas configurables con `DOCUMENTS_DIR`, `DOCUMENTS_DB_PATH`, `DOCUMENTS_CONFIG_PATH` y `MODELS_CACHE_DIR`. |
+| `make ask Q="<pregunta>"` | Responde una pregunta con el agente e imprime hechos, hipótesis, contradicciones e información insuficiente con sus evidencias, los avisos y un resumen de la traza. Requiere `make ingest`, `make ingest-docs` y Gemini configurado (ver abajo). Carga `ENV_FILE` (por defecto `.env`) solo si existe. |
 | `make eval` | Evaluación con el golden set (pendiente del change `add-evaluation-suite`). |
 | `make up` | Construye y levanta backend (`:8000`) y frontend (`:8501`) con Docker Compose. |
 
 Los puertos publicados se cambian con `BACKEND_PORT` y `FRONTEND_PORT`.
+
+## Preguntar al agente
+
+El agente usa Gemini. En `.env` (nunca se versiona):
+
+```bash
+LLM_PROVIDER=gemini
+GEMINI_MODEL=<modelo, por ejemplo uno de la familia Gemini Flash>
+GEMINI_API_KEY=<tu clave de Google AI Studio>
+```
+
+Los límites del proveedor (peticiones por minuto, tiempo máximo, reintentos ante 5xx), los topes de consultas y el léxico de la verificación están en `backend/config/agent.yaml` (`AGENT_CONFIG_PATH`). Con la cuota gratuita, cada pregunta hace normalmente 2 llamadas al LLM (plan y síntesis) y como mucho 4.
+
+```bash
+make ingest && make models && make ingest-docs   # una vez
+make ask Q="¿Cuál fue la región con mayor caída porcentual en ventas netas de Brío entre T1 y T2 de 2026?"
+```
+
+Termina con código 1 si falta configuración (nombra la variable) y 2 si la respuesta tiene estado `error` (por ejemplo, `quota_exhausted`).
 
 ## Consultar la base desde Python
 

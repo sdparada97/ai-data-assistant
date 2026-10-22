@@ -15,11 +15,18 @@ DOCUMENTS_DIR ?= data/raw
 DOCUMENTS_DB_PATH ?= data/processed/documents.duckdb
 DOCUMENTS_CONFIG_PATH ?= backend/config/documents.yaml
 MODELS_CACHE_DIR ?= .cache/models
+# Agente de consulta.
+AGENT_CONFIG_PATH ?= backend/config/agent.yaml
+# Variables del LLM (make ask, make test-llm): se cargan de ENV_FILE solo si existe, sin mostrarlas.
+ENV_FILE ?= .env
+ENV_LOAD = $(if $(wildcard $(ENV_FILE)),--env-file $(ENV_FILE))
+# Rutas de las pruebas llm (por defecto, las de pyproject.toml).
+LLM_TESTS ?=
 DEFAULT_FILTER := not llm and not embeddings
 LLM_FILTER := llm
 EMBEDDINGS_FILTER := embeddings
 
-.PHONY: help test test-llm test-embeddings eval up ingest ingest-docs models
+.PHONY: help test test-llm test-embeddings eval up ingest ingest-docs models ask
 
 help: ## Lista los objetivos disponibles
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-16s %s\n", $$1, $$2}'
@@ -27,8 +34,8 @@ help: ## Lista los objetivos disponibles
 test: ## Pruebas sin LLM, modelo de embeddings, red ni credenciales
 	$(UV_RUN) pytest -m "$(DEFAULT_FILTER)"
 
-test-llm: ## Solo pruebas marcadas @pytest.mark.llm (requieren red y credenciales)
-	@$(UV_RUN) pytest -m "$(LLM_FILTER)"; rc=$$?; \
+test-llm: ## Solo pruebas marcadas @pytest.mark.llm (requieren red y credenciales en ENV_FILE)
+	@$(UV_RUN) $(ENV_LOAD) pytest -m "$(LLM_FILTER)" $(LLM_TESTS); rc=$$?; \
 	if [ $$rc -eq 5 ]; then echo "No hay pruebas llm"; exit 0; fi; exit $$rc
 
 models: ## Descarga el modelo de embeddings en MODELS_CACHE_DIR y comprueba su huella
@@ -52,6 +59,11 @@ ingest-docs: ## Convierte y fragmenta los documentos y publica su base con embed
 	@DOCUMENTS_DIR="$(DOCUMENTS_DIR)" DOCUMENTS_DB_PATH="$(DOCUMENTS_DB_PATH)" \
 	DOCUMENTS_CONFIG_PATH="$(DOCUMENTS_CONFIG_PATH)" MODELS_CACHE_DIR="$(MODELS_CACHE_DIR)" \
 	$(UV_RUN) python -m analyst_backend.documents
+
+ask: ## Responde una pregunta: make ask Q="<pregunta>" (requiere make ingest, make ingest-docs y Gemini en ENV_FILE)
+	@AGENT_CONFIG_PATH="$(AGENT_CONFIG_PATH)" DUCKDB_PATH="$(DUCKDB_PATH)" SEMANTIC_LAYER_PATH="$(SEMANTIC_LAYER_PATH)" \
+	DOCUMENTS_DB_PATH="$(DOCUMENTS_DB_PATH)" DOCUMENTS_CONFIG_PATH="$(DOCUMENTS_CONFIG_PATH)" \
+	MODELS_CACHE_DIR="$(MODELS_CACHE_DIR)" $(UV_RUN) $(ENV_LOAD) python -m analyst_backend.agent
 
 up: ## Levanta backend y frontend con Docker Compose
 	docker compose up --build

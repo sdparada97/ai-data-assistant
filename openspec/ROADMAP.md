@@ -7,7 +7,7 @@ Estados: `pendiente` → `propuesto` → `aprobado` → `implementado` → `veri
 
 ## Siguiente paso
 
-Change 5 `add-query-agent`: pendiente. Empezar con `/opsx:propose` (agente LangGraph con `consultar_metrica`, `calidad_datos` y `buscar_documentos` como tools; ver "Tools de LangChain" abajo).
+Change 6 `add-contrast-and-causal-analysis` (`report-contrast`, `causal-assessment`): pendiente de proponer con `/opsx:propose`. El change 5 `add-query-agent` quedó archivado el 2026-10-22; las specs `llm-provider` y `query-agent` son nuevas y `project-layout` se actualizó ("Pruebas con LLM separadas").
 
 ## Pendientes para retomar
 
@@ -15,12 +15,11 @@ Change 5 `add-query-agent`: pendiente. Empezar con `/opsx:propose` (agente LangG
 - **Varios CSV de ventas (posible change futuro):** hoy la ingesta carga un solo archivo (decisión del 2026-10-21). Si llegan varios, añadir patrón de archivos, `source_file` y DQ01 entre archivos; nunca cargas incrementales.
 - **Consultas del agente:** nada de SQL fijo en código. Capa semántica primero (`consultar_metrica`) y SQL libre validado como respaldo (`sql_libre`, change 7). Confirmado por el responsable (2026-10-21).
 
-- **Tools de LangChain para el change 5 (`add-query-agent`), decidido el 2026-10-22:** la lógica sigue en Python puro (`analytics/`) y el change 5 solo la envuelve.
-  - `@tool(args_schema=MetricQuery|QualityQuery, response_format="content_and_artifact")`: el LLM recibe un resumen con cifras redondeadas y el *artifact* lleva el resultado completo (`evidence_id`, valores exactos, SQL) para el nodo "verificar".
-  - `ToolNode(handle_tool_errors=...)` debe devolver al LLM el `QueryError` (campo, valor, opciones válidas) además de los argumentos inválidos de pydantic, para que corrija y reintente. Por defecto `ToolNode` vuelve a lanzar los errores de ejecución.
-  - Cubrir con un test la combinación de `content_and_artifact` y el manejo de errores (la documentación no la muestra junta).
-  - En el artifact, `model_dump(mode="json")` convierte los `Decimal` en texto: el nodo "verificar" debe compararlos así.
-  - `buscar_documentos` (change 4) se envuelve igual: el texto de los fragmentos llega al LLM como evidencia citable por su ID (`content_kind = "evidencia_documental"`), nunca como instrucciones; el agente debe defenderse de textos como `OC-EXT-06`. Avisos con código (`semantic_unavailable`, `model_mismatch`, `no_matches`, `no_lexical_matches`, `filters_empty`).
+- **Tools de LangChain: confirmado e implementado en el change 5 (`add-query-agent`).** La lógica sigue en Python puro (`analytics/`, `documents/`); `agent/tools.py` solo la envuelve.
+  - `@tool(..., response_format="content_and_artifact")`: el LLM recibe un resumen JSON con cifras redondeadas; el *artifact* es el modelo pydantic completo, que usan la verificación (recorre sus `Decimal`, no el JSON) y la traza (`model_dump(mode="json")`).
+  - `ToolNode(handle_tool_errors=format_tool_error)` devuelve al LLM el `QueryError` (campo, valor, opciones válidas) y los argumentos inválidos (`ToolInvocationError`); probado junto con `content_and_artifact`. `max_concurrency=1`, porque DuckDB con `lock_configuration` no admite dos conexiones a la vez.
+  - El texto de los documentos llega a la síntesis delimitado como evidencia, con los delimitadores neutralizados; la corrección nunca lo ve.
+- **Benchmark del change 5 (resumen):** 6 estrategias (S1–S6: ReAct libre y verificado, plan y ejecución, extracción guiada con y sin ejemplos, y plan y ejecución con primitivas nativas) con modelos locales de 7–8B (2 de 57 preguntas de cifras correctas) y Gemini (cuota gratuita). Ganó "plan y ejecución" con primitivas nativas: 2 llamadas por pregunta y ninguna lectura de documentos antes de decidir las consultas. Con Gemini, las 2 preguntas `llm` pasan (región con mayor caída; contradicción del reporte). Detalle en `openspec/changes/archive/2026-10-22-add-query-agent/benchmark.md`.
 - **Evaluación de la recuperación (change 9):** las preguntas de los escenarios de `document-retrieval` son las mismas que sirvieron para elegir el modelo (MiniLM + BM25 con RRF). El change 9 debe medir hit@k y MRR con preguntas distintas y valorar ahí un reranker (`bge-reranker-v2-m3-int8`, 0,57 GB) si el orden del top 3 falla.
 - **Catálogo de valores válidos: resuelto** en `add-sales-ingestion`: `backend/config/semantic_layer.yaml` (sección `dimensions`); el change 3 añade métricas y alias al mismo archivo.
 
@@ -41,7 +40,7 @@ Change 5 `add-query-agent`: pendiente. Empezar con `/opsx:propose` (agente LangG
 | 2 | `add-sales-ingestion` | `sales-ingestion`, `data-quality` | 1, Etapa 4 | Sí | archivado (2026-10-21) |
 | 3 | `add-sales-analytics` | `semantic-layer`, `sales-metrics` (modifica `data-quality`) | 2 | Indirecto | archivado (2026-10-22) |
 | 4 | `add-document-retrieval` | `document-ingestion`, `document-retrieval` (modifica `project-layout`) | 1, Etapa 4 | Sí | archivado (2026-10-22) |
-| 5 | `add-query-agent` | `llm-provider`, `query-agent` | 3, 4 | Indirecto | pendiente |
+| 5 | `add-query-agent` | `llm-provider`, `query-agent` (modifica `project-layout`) | 3, 4 | Indirecto | archivado (2026-10-22) |
 | 6 | `add-contrast-and-causal-analysis` | `report-contrast`, `causal-assessment` | 5 | Indirecto | pendiente |
 | 7 | `add-safe-sql-tool` | `safe-sql` | 3, 5 | Indirecto | pendiente |
 | 8 | `add-api-and-ui` | `query-api`, `analyst-ui` | 5 | No | pendiente |

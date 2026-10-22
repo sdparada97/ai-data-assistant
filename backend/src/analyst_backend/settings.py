@@ -12,10 +12,22 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from pydantic import SecretStr
+
 INGESTION_VARIABLES = ("SALES_CSV_PATH", "DUCKDB_PATH", "SEMANTIC_LAYER_PATH", "DATA_QUALITY_PATH")
 ANALYTICS_VARIABLES = ("DUCKDB_PATH", "SEMANTIC_LAYER_PATH")
 DOCUMENTS_VARIABLES = ("DOCUMENTS_DIR", "DOCUMENTS_DB_PATH", "DOCUMENTS_CONFIG_PATH", "MODELS_CACHE_DIR")
 MODELS_VARIABLES = ("DOCUMENTS_CONFIG_PATH", "MODELS_CACHE_DIR")
+AGENT_VARIABLES = (
+    "AGENT_CONFIG_PATH",
+    "DUCKDB_PATH",
+    "SEMANTIC_LAYER_PATH",
+    "DOCUMENTS_DB_PATH",
+    "DOCUMENTS_CONFIG_PATH",
+    "MODELS_CACHE_DIR",
+)
+SUPPORTED_LLM_PROVIDERS = ("gemini",)
+LLM_PROVIDER_VARIABLES = {"gemini": ("GEMINI_MODEL", "GEMINI_API_KEY")}
 
 
 class SettingsError(RuntimeError):
@@ -109,3 +121,51 @@ def load_models_settings(environ: Mapping[str, str] | None = None, base_dir: Pat
     return ModelsSettings(
         documents_config_path=paths["DOCUMENTS_CONFIG_PATH"], models_cache_dir=paths["MODELS_CACHE_DIR"]
     )
+
+
+@dataclass(frozen=True)
+class AgentSettings:
+    agent_config_path: Path
+    duckdb_path: Path
+    semantic_layer_path: Path
+    documents_db_path: Path
+    documents_config_path: Path
+    models_cache_dir: Path
+
+
+def load_agent_settings(environ: Mapping[str, str] | None = None, base_dir: Path | None = None) -> AgentSettings:
+    """Rutas que necesita el agente: su configuración, la base de ventas, la de documentos y la caché de modelos."""
+    paths = _read_paths(AGENT_VARIABLES, "el agente", environ, base_dir)
+    return AgentSettings(
+        agent_config_path=paths["AGENT_CONFIG_PATH"],
+        duckdb_path=paths["DUCKDB_PATH"],
+        semantic_layer_path=paths["SEMANTIC_LAYER_PATH"],
+        documents_db_path=paths["DOCUMENTS_DB_PATH"],
+        documents_config_path=paths["DOCUMENTS_CONFIG_PATH"],
+        models_cache_dir=paths["MODELS_CACHE_DIR"],
+    )
+
+
+@dataclass(frozen=True)
+class LLMSettings:
+    provider: str
+    model: str
+    api_key: SecretStr  # nunca se imprime: SecretStr se muestra como '**********'
+
+
+def load_llm_settings(environ: Mapping[str, str] | None = None) -> LLMSettings:
+    """Proveedor, modelo y clave del LLM. Los errores nombran la variable, nunca su valor si es secreta."""
+    env = os.environ if environ is None else environ
+    provider = env.get("LLM_PROVIDER", "").strip()
+    if provider not in SUPPORTED_LLM_PROVIDERS:
+        received = f"'{provider}'" if provider else "(vacía)"
+        raise SettingsError(
+            f"LLM_PROVIDER no es válida: {received}. Proveedores admitidos: {', '.join(SUPPORTED_LLM_PROVIDERS)}."
+        )
+    model_var, key_var = LLM_PROVIDER_VARIABLES[provider]
+    missing = [name for name in (model_var, key_var) if not env.get(name, "").strip()]
+    if missing:
+        raise SettingsError(
+            f"Faltan variables de entorno para el proveedor {provider}: {', '.join(missing)}. Defínelas en .env."
+        )
+    return LLMSettings(provider=provider, model=env[model_var].strip(), api_key=SecretStr(env[key_var].strip()))

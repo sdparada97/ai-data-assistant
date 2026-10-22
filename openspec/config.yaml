@@ -32,8 +32,8 @@ context: |
 
   Stack: Python 3.14, FastAPI y LangGraph para la orquestación; LangChain solo
   para integraciones de modelo, tools y salida estructurada. LLM sin costo:
-  Gemini Flash (principal) y Ollama (alternativa), intercambiables por variable
-  de entorno. DuckDB embebido con capa semántica (semantic_layer.yaml). Ingesta
+  solo Gemini por ahora (LLM_PROVIDER); agente "plan y ejecución" con
+  verificación en código (D8). DuckDB embebido con capa semántica (semantic_layer.yaml). Ingesta
   validada con Pandera; recuperación híbrida BM25 + embeddings locales (fastembed)
   combinados con RRF. Frontend Streamlit; todo en Docker Compose.
   Pruebas: unit, agent (LLM falso), integration (@pytest.mark.llm) y eval.

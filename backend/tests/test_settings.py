@@ -11,7 +11,10 @@ from analyst_backend.settings import (
     DOCUMENTS_VARIABLES,
     INGESTION_VARIABLES,
     SettingsError,
+    AGENT_VARIABLES,
+    load_agent_settings,
     load_analytics_settings,
+    load_llm_settings,
     load_documents_settings,
     load_ingestion_settings,
 )
@@ -62,7 +65,9 @@ def test_env_example_declares_every_variable() -> None:
     env_example = Path(__file__).resolve().parents[2] / ".env.example"
     declared = {line.split("=", 1)[0] for line in env_example.read_text(encoding="utf-8").splitlines() if "=" in line}
 
-    assert set(INGESTION_VARIABLES) | set(DOCUMENTS_VARIABLES) <= declared
+    assert set(INGESTION_VARIABLES) | set(DOCUMENTS_VARIABLES) | set(AGENT_VARIABLES) <= declared
+    assert {"LLM_PROVIDER", "GEMINI_MODEL", "GEMINI_API_KEY"} <= declared
+    assert not any(name.startswith("OLLAMA") for name in declared)
 
 
 def test_analytics_settings_read_two_paths(tmp_path: Path) -> None:
@@ -103,3 +108,36 @@ def test_documents_missing_variable_is_named(missing: str) -> None:
 
     with pytest.raises(SettingsError, match=missing):
         load_documents_settings(env)
+
+
+AGENT_ENV = {
+    "AGENT_CONFIG_PATH": "backend/config/agent.yaml",
+    "DUCKDB_PATH": "data/processed/analytics.duckdb",
+    "SEMANTIC_LAYER_PATH": "backend/config/semantic_layer.yaml",
+    "DOCUMENTS_DB_PATH": "data/processed/documents.duckdb",
+    "DOCUMENTS_CONFIG_PATH": "backend/config/documents.yaml",
+    "MODELS_CACHE_DIR": ".cache/models",
+}
+
+
+def test_agent_settings_read_six_paths(tmp_path: Path) -> None:
+    settings = load_agent_settings(AGENT_ENV, base_dir=tmp_path)
+
+    assert settings.agent_config_path == tmp_path / "backend/config/agent.yaml"
+    assert settings.documents_db_path == tmp_path / "data/processed/documents.duckdb"
+
+
+@pytest.mark.parametrize("missing", AGENT_VARIABLES)
+def test_agent_missing_variable_is_named(missing: str) -> None:
+    env = {k: v for k, v in AGENT_ENV.items() if k != missing}
+
+    with pytest.raises(SettingsError, match=missing):
+        load_agent_settings(env)
+
+
+def test_llm_settings_keep_the_key_secret() -> None:
+    settings = load_llm_settings({"LLM_PROVIDER": "gemini", "GEMINI_MODEL": "gemini-x", "GEMINI_API_KEY": "secreto-123"})
+
+    assert (settings.provider, settings.model) == ("gemini", "gemini-x")
+    assert settings.api_key.get_secret_value() == "secreto-123"
+    assert "secreto-123" not in repr(settings) and "secreto-123" not in str(settings)

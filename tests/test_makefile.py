@@ -80,8 +80,16 @@ def test_default_filter_excludes_llm_and_embeddings_tests(pytester: pytest.Pytes
 # --- Pruebas con LLM separadas -----------------------------------------------
 
 
-def test_make_test_llm_succeeds_without_llm_tests() -> None:
-    result = _make("test-llm")
+def test_make_test_llm_succeeds_without_llm_tests(tmp_path: Path) -> None:
+    # LLM_TESTS a un directorio vacío y ENV_FILE=/dev/null: sin red ni .env desde make test.
+    result = _make("test-llm", f"LLM_TESTS={tmp_path}", "ENV_FILE=/dev/null")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "No hay pruebas llm" in result.stdout
+
+
+def test_make_test_llm_with_a_missing_env_file(tmp_path: Path) -> None:
+    result = _make("test-llm", f"LLM_TESTS={tmp_path}", f"ENV_FILE={tmp_path / 'no-existe.env'}")
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert "No hay pruebas llm" in result.stdout
