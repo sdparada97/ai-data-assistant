@@ -29,6 +29,7 @@ cp .env.example .env   # completa las variables; .env nunca se versiona
 | `make help` | Lista los objetivos disponibles. |
 | `make test` | Pruebas sin LLM, red ni credenciales (excluye `@pytest.mark.llm`). |
 | `make test-llm` | Solo pruebas marcadas `@pytest.mark.llm`; requieren red y credenciales. |
+| `make ingest` | Carga `data/raw/02_Ventas_2026.csv` en `data/processed/analytics.duckdb` aplicando las reglas de calidad. Rutas configurables con `SALES_CSV_PATH`, `DUCKDB_PATH`, `SEMANTIC_LAYER_PATH` y `DATA_QUALITY_PATH`. |
 | `make eval` | Evaluación con el golden set (pendiente del change `add-evaluation-suite`). |
 | `make up` | Construye y levanta backend (`:8000`) y frontend (`:8501`) con Docker Compose. |
 

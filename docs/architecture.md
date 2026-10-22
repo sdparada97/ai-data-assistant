@@ -10,6 +10,7 @@ Solo decisiones y límites. La estructura de carpetas se consulta en el grafo (`
 | D2' | Código fuente en `backend/src/` (API) y `frontend/src/` (interfaz); pruebas en `backend/tests/`, `frontend/tests/` y `tests/` (repositorio). Reemplaza D2 (change `restructure-monorepo-layout`). | Backend y frontend se despliegan en contenedores distintos con dependencias distintas; el layout por aplicación evita mezclar la API con la interfaz. graphify indexa el repositorio completo. |
 | D3 | Grafo de código con graphify, regenerado en cada commit | Claude consulta relaciones sin leer todo el repo. |
 | D4 | Python 3.14 (`.python-version`) y workspace de uv con un único `uv.lock` versionado; dependencias directas con `==` | Entorno reproducible y una sola resolución de dependencias para backend y frontend. |
+| D5 | Base de ventas en DuckDB con cuatro tablas: `sales` (única fuente de cifras), `sales_review` (filas retenidas para revisión), `dq_issues` (cada actuación de una regla de calidad) e `ingestion_runs` (carga publicada). Se reconstruye entera en cada carga y se publica de forma atómica. El catálogo de valores válidos vive en `backend/config/semantic_layer.yaml`. | Cifras trazables y reproducibles; las inconsistencias quedan explícitas y consultables. Change `add-sales-ingestion`. |
 
 <!-- Añade aquí stack, almacenamiento, proveedor de LLM, etc. cuando se decidan (vía un change de OpenSpec). -->
 
@@ -21,7 +22,7 @@ Solo decisiones y límites. La estructura de carpetas se consulta en el grafo (`
 
 ## Arquitectura de Brío Analyst
 
-Arquitectura objetivo de referencia. Cada pieza se formaliza en su change de OpenSpec (ver `openspec/ROADMAP.md`); si un change la modifica, actualiza esta sección. Las decisiones D1, D2', D3 y D4 siguen vigentes.
+Arquitectura objetivo de referencia. Cada pieza se formaliza en su change de OpenSpec (ver `openspec/ROADMAP.md`); si un change la modifica, actualiza esta sección. Las decisiones D1, D2', D3, D4 y D5 siguen vigentes.
 
 ### Propósito
 
@@ -51,7 +52,7 @@ Un analista pregunta en lenguaje natural y recibe respuestas fundamentadas. Ejem
 - **Backend:** Python 3.14 (D4), FastAPI y LangGraph para la orquestación. LangChain solo para integraciones de modelo (`langchain-google-genai`, `langchain-ollama`), tools y salida estructurada.
 - **Frontend:** Streamlit, que consume la API. Todo se levanta con Docker Compose.
 - **Datos:** DuckDB embebido (read-only para consultas) y una capa semántica en `semantic_layer.yaml` (métricas, dimensiones, valores válidos, definiciones de negocio).
-- **Ingesta** determinista e idempotente: limpieza y validación con Pandera; tabla `dq_issues` con cada regla y su impacto; documentos parseados con PyMuPDF / python-docx / markdown en chunks por sección con metadatos (`doc_id`, `tipo_fuente`, página/sección, `chunk_id`).
+- **Ingesta** determinista e idempotente (D5): limpieza con las reglas de calidad aprobadas en `docs/EXPLORACION_DATOS.md` y verificación final con Pandera; tablas `sales`, `sales_review`, `dq_issues` e `ingestion_runs`; documentos parseados con PyMuPDF / python-docx / markdown en chunks por sección con metadatos (`doc_id`, `tipo_fuente`, página/sección, `chunk_id`).
 - **Recuperación híbrida:** BM25 (`rank-bm25`) más embeddings locales multilingües con `fastembed` (sin PyTorch), combinados con RRF.
 - **Herramientas**, cada una con su `evidence_id`:
   - `consultar_metrica`: SQL generado desde el YAML de la capa semántica.

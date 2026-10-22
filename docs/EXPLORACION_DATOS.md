@@ -84,6 +84,8 @@ Revisión una a una con el responsable del proyecto.
 | DQ10 | Omitida | 2026-10-21 | Mismo motivo que DQ09: no se valida la región contra el prefijo del código. |
 | DQ11 | Aprobada (opción A, informativa) | 2026-10-21 | Si un `punto_venta_id` aparece una sola vez en el archivo, la fila va a `dq_issues` como `punto_venta_unico` con severidad "aviso" (incluye cuántas veces aparece y la mediana del resto). No excluye ni corrige. |
 | DQ12 | Aprobada (opción A, informativa) | 2026-10-21 | En las filas que pasaron DQ01–DQ08, si el precio por unidad (`venta_neta_cop / unidades`) se desvía más de un umbral (50 %, configurable, no en código) de la mediana de su marca y presentación, la fila va a `dq_issues` como `precio_atipico` con severidad "aviso", su precio y la mediana. No excluye. |
+| DQ13 | Aprobada (nueva) | 2026-10-21 | Si `unidades` es 0 y `venta_neta_cop` es positiva, la fila va a revisión (`sales_review`) como `venta_sin_unidades`. Venta 0 con unidades positivas, o ambos en 0, no la activan. Sin casos en el archivo actual. |
+| — | Decisión | 2026-10-21 | `registro_id` o `punto_venta_id` vacío: sin regla propia; la validación final detiene la carga. |
 
 ## Valor de referencia: región con mayor caída de Brío (T2 vs T1)
 

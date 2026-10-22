@@ -1,0 +1,57 @@
+"""Configuración de la ingesta (settings.py)."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from analyst_backend.settings import INGESTION_VARIABLES, SettingsError, load_ingestion_settings
+
+FULL_ENV = {
+    "SALES_CSV_PATH": "data/raw/ventas.csv",
+    "DUCKDB_PATH": "/tmp/x/analytics.duckdb",
+    "SEMANTIC_LAYER_PATH": "backend/config/semantic_layer.yaml",
+    "DATA_QUALITY_PATH": "backend/config/data_quality.yaml",
+}
+
+
+def test_relative_paths_resolve_from_base_dir(tmp_path: Path) -> None:
+    settings = load_ingestion_settings(FULL_ENV, base_dir=tmp_path)
+
+    assert settings.sales_csv_path == tmp_path / "data/raw/ventas.csv"
+    assert settings.semantic_layer_path == tmp_path / "backend/config/semantic_layer.yaml"
+
+
+def test_absolute_paths_are_kept(tmp_path: Path) -> None:
+    settings = load_ingestion_settings(FULL_ENV, base_dir=tmp_path)
+
+    assert settings.duckdb_path == Path("/tmp/x/analytics.duckdb")
+
+
+@pytest.mark.parametrize("missing", INGESTION_VARIABLES)
+def test_missing_variable_is_named(missing: str) -> None:
+    env = {k: v for k, v in FULL_ENV.items() if k != missing}
+
+    with pytest.raises(SettingsError, match=missing):
+        load_ingestion_settings(env)
+
+
+def test_blank_variable_counts_as_missing() -> None:
+    with pytest.raises(SettingsError, match="DUCKDB_PATH"):
+        load_ingestion_settings({**FULL_ENV, "DUCKDB_PATH": "  "})
+
+
+def test_reads_process_environment_by_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    for name, value in FULL_ENV.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.chdir(tmp_path)
+
+    assert load_ingestion_settings().sales_csv_path == tmp_path / "data/raw/ventas.csv"
+
+
+def test_env_example_declares_every_variable() -> None:
+    env_example = Path(__file__).resolve().parents[2] / ".env.example"
+    declared = {line.split("=", 1)[0] for line in env_example.read_text(encoding="utf-8").splitlines() if "=" in line}
+
+    assert set(INGESTION_VARIABLES) <= declared

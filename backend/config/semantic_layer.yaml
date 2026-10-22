@@ -1,0 +1,18 @@
+# Capa semántica de Brío Analyst.
+# Este archivo empieza con la sección `dimensions` (catálogo de valores válidos que usa
+# la regla DQ04 de la ingesta). Las métricas y los alias llegan en el change add-sales-analytics.
+# Fuente de los valores: docs/EXPLORACION_DATOS.md (esquema del CSV).
+
+dimensions:
+  marca:
+    description: Marca comercial. En los datos, `Brio` representa a Brío.
+    values: [Brio, Luma, Nativa, Rizo, Senda]
+  region:
+    description: Región comercial.
+    values: [Norte, Centro, Sur, Oriente, Occidente]
+  canal:
+    description: Canal de venta.
+    values: [Tradicional, Moderno]
+  presentacion:
+    description: Presentación del producto.
+    values: [Individual, Familiar]

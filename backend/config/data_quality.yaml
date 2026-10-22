@@ -1,0 +1,4 @@
+# Parámetros técnicos de calidad de datos de la ingesta.
+
+# DQ12: aviso si |precio por unidad / mediana de marca y presentación - 1| supera este valor.
+price_deviation_threshold: 0.5
