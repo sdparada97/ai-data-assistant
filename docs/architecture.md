@@ -11,6 +11,7 @@ Solo decisiones y límites. La estructura de carpetas se consulta en el grafo (`
 | D3 | Grafo de código con graphify, regenerado en cada commit | Claude consulta relaciones sin leer todo el repo. |
 | D4 | Python 3.14 (`.python-version`) y workspace de uv con un único `uv.lock` versionado; dependencias directas con `==` | Entorno reproducible y una sola resolución de dependencias para backend y frontend. |
 | D5 | Base de ventas en DuckDB con cuatro tablas: `sales` (única fuente de cifras), `sales_review` (filas retenidas para revisión), `dq_issues` (cada actuación de una regla de calidad) e `ingestion_runs` (carga publicada). Se reconstruye entera en cada carga y se publica de forma atómica. El catálogo de valores válidos vive en `backend/config/semantic_layer.yaml`. | Cifras trazables y reproducibles; las inconsistencias quedan explícitas y consultables. Change `add-sales-ingestion`. |
+| D6 | Capa semántica en `semantic_layer.yaml` (métricas agregadas con expresión validada y métricas cociente, alias y dimensiones) y herramientas `consultar_metrica` y `calidad_datos` como funciones Python puras de solo lectura: el LLM elige parámetros, el código genera el SQL con valores enlazados, los períodos son expresiones de calendario y cada resultado lleva `evidence_id`, `ingestion_id` y los avisos de calidad de su corte. | Ninguna cifra depende del LLM; resultados reproducibles y trazables. Change `add-sales-analytics`. |
 
 <!-- Añade aquí stack, almacenamiento, proveedor de LLM, etc. cuando se decidan (vía un change de OpenSpec). -->
 
@@ -22,7 +23,7 @@ Solo decisiones y límites. La estructura de carpetas se consulta en el grafo (`
 
 ## Arquitectura de Brío Analyst
 
-Arquitectura objetivo de referencia. Cada pieza se formaliza en su change de OpenSpec (ver `openspec/ROADMAP.md`); si un change la modifica, actualiza esta sección. Las decisiones D1, D2', D3, D4 y D5 siguen vigentes.
+Arquitectura objetivo de referencia. Cada pieza se formaliza en su change de OpenSpec (ver `openspec/ROADMAP.md`); si un change la modifica, actualiza esta sección. Las decisiones D1, D2', D3, D4, D5 y D6 siguen vigentes.
 
 ### Propósito
 

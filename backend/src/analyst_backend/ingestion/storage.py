@@ -59,6 +59,12 @@ TABLE_DDL: dict[str, str] = {
             action VARCHAR NOT NULL,
             affected_net_sales_cop BIGINT,
             details VARCHAR,
+            mes VARCHAR,
+            marca VARCHAR,
+            region VARCHAR,
+            canal VARCHAR,
+            presentacion VARCHAR,
+            punto_venta_id VARCHAR,
             ingestion_id VARCHAR NOT NULL
         )""",
     "ingestion_runs": """
@@ -89,6 +95,10 @@ TABLE_COMMENTS: dict[str, str] = {
 }
 
 _RAW = "Valor tal como llegó en el CSV (texto, sin recortar)"
+_ROW_DIMENSION = (
+    "{} de la fila afectada: recortado y con la escritura del catálogo si es válido "
+    "(permite asociar la incidencia a un corte de marca, región, canal, presentación o período)"
+)
 COLUMN_COMMENTS: dict[str, dict[str, str]] = {
     "sales": {
         "registro_id": "Identificador único del registro comercial",
@@ -132,6 +142,12 @@ COLUMN_COMMENTS: dict[str, dict[str, str]] = {
         "action": "corregida, ninguna o el destino final de la fila (eliminada, excluida, en_revision)",
         "affected_net_sales_cop": "Venta neta registrada en la fila si es un entero; nula si no es cuantificable",
         "details": "JSON con datos propios de la regla (diferencias, columnas, mediana, precio)",
+        "mes": _ROW_DIMENSION.format("mes"),
+        "marca": _ROW_DIMENSION.format("marca"),
+        "region": _ROW_DIMENSION.format("region"),
+        "canal": _ROW_DIMENSION.format("canal"),
+        "presentacion": _ROW_DIMENSION.format("presentacion"),
+        "punto_venta_id": _ROW_DIMENSION.format("punto_venta_id"),
         "ingestion_id": "Carga que produjo la incidencia",
     },
     "ingestion_runs": {

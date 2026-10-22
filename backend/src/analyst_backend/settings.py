@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 INGESTION_VARIABLES = ("SALES_CSV_PATH", "DUCKDB_PATH", "SEMANTIC_LAYER_PATH", "DATA_QUALITY_PATH")
+ANALYTICS_VARIABLES = ("DUCKDB_PATH", "SEMANTIC_LAYER_PATH")
 
 
 class SettingsError(RuntimeError):
@@ -32,22 +33,42 @@ def _resolve(value: str, base_dir: Path) -> Path:
     return path if path.is_absolute() else (base_dir / path).resolve()
 
 
+@dataclass(frozen=True)
+class AnalyticsSettings:
+    duckdb_path: Path
+    semantic_layer_path: Path
+
+
+def _read_paths(
+    names: tuple[str, ...], purpose: str, environ: Mapping[str, str] | None, base_dir: Path | None
+) -> dict[str, Path]:
+    env = os.environ if environ is None else environ
+    missing = [name for name in names if not env.get(name, "").strip()]
+    if missing:
+        raise SettingsError(
+            f"Faltan variables de entorno para {purpose}: " + ", ".join(missing)
+            + ". Defínelas como en .env.example."
+        )
+    base = Path.cwd() if base_dir is None else base_dir
+    return {name: _resolve(env[name].strip(), base) for name in names}
+
+
 def load_ingestion_settings(
     environ: Mapping[str, str] | None = None, base_dir: Path | None = None
 ) -> IngestionSettings:
     """Lee las rutas de la ingesta. Las relativas se resuelven desde ``base_dir`` (por defecto, el directorio de trabajo)."""
-    env = os.environ if environ is None else environ
-    missing = [name for name in INGESTION_VARIABLES if not env.get(name, "").strip()]
-    if missing:
-        raise SettingsError(
-            "Faltan variables de entorno para la ingesta: " + ", ".join(missing)
-            + ". Usa `make ingest` o defínelas como en .env.example."
-        )
-    base = Path.cwd() if base_dir is None else base_dir
-    paths = {name: _resolve(env[name].strip(), base) for name in INGESTION_VARIABLES}
+    paths = _read_paths(INGESTION_VARIABLES, "la ingesta", environ, base_dir)
     return IngestionSettings(
         sales_csv_path=paths["SALES_CSV_PATH"],
         duckdb_path=paths["DUCKDB_PATH"],
         semantic_layer_path=paths["SEMANTIC_LAYER_PATH"],
         data_quality_path=paths["DATA_QUALITY_PATH"],
     )
+
+
+def load_analytics_settings(
+    environ: Mapping[str, str] | None = None, base_dir: Path | None = None
+) -> AnalyticsSettings:
+    """Lee las rutas que necesitan las herramientas de consulta."""
+    paths = _read_paths(ANALYTICS_VARIABLES, "las consultas", environ, base_dir)
+    return AnalyticsSettings(duckdb_path=paths["DUCKDB_PATH"], semantic_layer_path=paths["SEMANTIC_LAYER_PATH"])

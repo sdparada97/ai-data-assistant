@@ -169,12 +169,13 @@ def apply_rules(raw: pd.DataFrame, catalog: Catalog, quality: QualityConfig) -> 
         *rules.flag_price_outliers(sales, quality.price_deviation_threshold),
     ]
     line_destination = dict(zip(working[SOURCE_LINE], destinations, strict=True))
+    line_dimensions = working.set_index(SOURCE_LINE)[list(rules.ROW_DIMENSIONS)].to_dict("index")
     line_sales = dict(zip(working[SOURCE_LINE], working["venta_neta_cop"].map(rules.parse_integer), strict=True))
     review_rows = raw[destinations == REVIEW]
     return RulesOutcome(
         sales=sales,
         review=_review_frame(review_rows, issues),
-        issues=_issues_frame(issues, line_destination, line_sales),
+        issues=_issues_frame(issues, line_destination, line_sales, line_dimensions),
         destinations=destinations,
     )
 
@@ -217,7 +218,10 @@ def _review_frame(rows: pd.DataFrame, issues: list[rules.Issue]) -> pd.DataFrame
 
 
 def _issues_frame(
-    issues: list[rules.Issue], line_destination: dict[int, str], line_sales: dict[int, int | None]
+    issues: list[rules.Issue],
+    line_destination: dict[int, str],
+    line_sales: dict[int, int | None],
+    line_dimensions: dict[int, dict[str, str]],
 ) -> pd.DataFrame:
     ordered = sorted(issues, key=lambda i: (i.source_line, i.rule_code, i.column_name or ""))
     records = [
@@ -234,6 +238,7 @@ def _issues_frame(
             "action": issue.action or line_destination[issue.source_line],
             "affected_net_sales_cop": line_sales[issue.source_line],
             "details": issue.details_json(),
+            **line_dimensions[issue.source_line],
         }
         for position, issue in enumerate(ordered, start=1)
     ]

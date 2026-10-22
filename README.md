@@ -35,6 +35,33 @@ cp .env.example .env   # completa las variables; .env nunca se versiona
 
 Los puertos publicados se cambian con `BACKEND_PORT` y `FRONTEND_PORT`.
 
+## Consultar la base desde Python
+
+Tras `make ingest`, las herramientas `consultar_metrica` y `calidad_datos` se pueden probar directamente:
+
+```bash
+DUCKDB_PATH=data/processed/analytics.duckdb SEMANTIC_LAYER_PATH=backend/config/semantic_layer.yaml \
+uv run --all-packages python -c '
+from analyst_backend.analytics.metrics import consultar_metrica
+from analyst_backend.analytics.models import MetricQuery
+from analyst_backend.analytics.semantic import load_semantic_layer
+from analyst_backend.settings import load_analytics_settings
+
+settings = load_analytics_settings()
+layer = load_semantic_layer(settings.semantic_layer_path)
+query = MetricQuery(
+    metrics=["venta_neta"], filters={"marca": ["Brío"]}, group_by=["region"],
+    compare={"base": "2026-T1", "target": "2026-T2"},
+    sort={"metric": "venta_neta", "field": "var_pct", "order": "asc"},
+)
+result = consultar_metrica(query, layer, settings.duckdb_path)
+for row in result.rows:
+    cell = row.metrics["venta_neta"]
+    print(row.rank, row.group["region"], cell.base, cell.target, cell.var_pct)
+print(result.evidence_id, [(n.registro_id, n.rule_code) for n in result.quality_notes])
+'
+```
+
 Sin Docker, cada aplicación se puede lanzar en local:
 
 ```bash

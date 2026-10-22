@@ -6,7 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from analyst_backend.settings import INGESTION_VARIABLES, SettingsError, load_ingestion_settings
+from analyst_backend.settings import (
+    ANALYTICS_VARIABLES,
+    INGESTION_VARIABLES,
+    SettingsError,
+    load_analytics_settings,
+    load_ingestion_settings,
+)
 
 FULL_ENV = {
     "SALES_CSV_PATH": "data/raw/ventas.csv",
@@ -55,3 +61,18 @@ def test_env_example_declares_every_variable() -> None:
     declared = {line.split("=", 1)[0] for line in env_example.read_text(encoding="utf-8").splitlines() if "=" in line}
 
     assert set(INGESTION_VARIABLES) <= declared
+
+
+def test_analytics_settings_read_two_paths(tmp_path: Path) -> None:
+    settings = load_analytics_settings(FULL_ENV, base_dir=tmp_path)
+
+    assert settings.duckdb_path == Path("/tmp/x/analytics.duckdb")
+    assert settings.semantic_layer_path == tmp_path / "backend/config/semantic_layer.yaml"
+
+
+@pytest.mark.parametrize("missing", ANALYTICS_VARIABLES)
+def test_analytics_missing_variable_is_named(missing: str) -> None:
+    env = {k: v for k, v in FULL_ENV.items() if k != missing}
+
+    with pytest.raises(SettingsError, match=missing):
+        load_analytics_settings(env)

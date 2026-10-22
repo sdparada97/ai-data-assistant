@@ -61,9 +61,30 @@ def test_dq_issues_columns_and_details(con: duckdb.DuckDBPyConnection) -> None:
     columns = [row[0] for row in con.execute("DESCRIBE dq_issues").fetchall()]
     details = [row[0] for row in con.execute("SELECT details FROM dq_issues").fetchall()]
 
-    assert tuple(columns) == rules.ISSUE_COLUMNS
+    assert tuple(columns) == rules.ISSUE_COLUMNS == (
+        "issue_id", "registro_id", "source_line", "rule_code", "issue_type", "severity",
+        "column_name", "original_value", "new_value", "action", "affected_net_sales_cop", "details",
+        "mes", "marca", "region", "canal", "presentacion", "punto_venta_id", "ingestion_id",
+    )  # fmt: skip
     for value in details:
         assert value is None or isinstance(json.loads(value), dict)
+
+
+def test_dq_issues_store_row_dimensions(con: duckdb.DuckDBPyConnection) -> None:
+    row = con.execute(
+        "SELECT mes, marca, region, canal, presentacion, punto_venta_id FROM dq_issues "
+        "WHERE registro_id = 'V03997' AND rule_code = 'DQ07'"
+    ).fetchone()
+
+    assert row == ("2026-05", "Brio", "Sur", "Tradicional", "Individual", "SU-T-013")
+
+
+def test_dq_issues_dimensions_are_normalised(con: duckdb.DuckDBPyConnection) -> None:
+    brand = con.execute("SELECT marca FROM dq_issues WHERE registro_id = 'V00667' AND rule_code = 'DQ04'").fetchone()
+    region = con.execute("SELECT region FROM dq_issues WHERE registro_id = 'V02929' AND rule_code = 'DQ03'").fetchone()
+
+    assert brand == ("Brio",)
+    assert region == ("Sur",)
 
 
 # --- Validación de la entrada: base previa intacta ------------------------------------
@@ -156,7 +177,7 @@ def test_every_table_and_column_has_a_comment(con: duckdb.DuckDBPyConnection) ->
 
     assert set(table_comments) == set(TABLES)
     assert all(table_comments[t] for t in TABLES)
-    assert len(column_comments) == 11 + 14 + 13 + 9
+    assert len(column_comments) == 11 + 14 + 19 + 9
     assert all(comment for _, _, comment in column_comments)
     assert "Única fuente de cifras" in table_comments["sales"]
 

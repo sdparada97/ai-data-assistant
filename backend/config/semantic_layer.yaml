@@ -1,12 +1,15 @@
 # Capa semántica de Brío Analyst.
-# Este archivo empieza con la sección `dimensions` (catálogo de valores válidos que usa
-# la regla DQ04 de la ingesta). Las métricas y los alias llegan en el change add-sales-analytics.
-# Fuente de los valores: docs/EXPLORACION_DATOS.md (esquema del CSV).
+# - `dimensions`: catálogo de valores válidos (lo usa también la regla DQ04 de la ingesta),
+#   alias y dimensiones abiertas o de tiempo.
+# - `metrics`: métricas agregadas (expresión SQL validada al cargar) y métricas cociente.
+# Fuente de los valores: docs/EXPLORACION_DATOS.md (esquema del CSV y contexto de negocio).
 
 dimensions:
   marca:
     description: Marca comercial. En los datos, `Brio` representa a Brío.
     values: [Brio, Luma, Nativa, Rizo, Senda]
+    aliases:
+      Brío: Brio
   region:
     description: Región comercial.
     values: [Norte, Centro, Sur, Oriente, Occidente]
@@ -16,3 +19,32 @@ dimensions:
   presentacion:
     description: Presentación del producto.
     values: [Individual, Familiar]
+  punto_venta_id:
+    description: Identificador operativo del punto de venta (dimensión abierta, sin catálogo).
+  mes:
+    description: Mes del registro (AAAA-MM). Solo para agrupar; los meses se piden con períodos.
+    time: true
+
+metrics:
+  venta_neta:
+    description: Venta neta en pesos colombianos.
+    unit: COP
+    decimals: 0
+    expression: SUM(venta_neta_cop)
+  unidades:
+    description: Unidades registradas.
+    unit: unidades
+    decimals: 0
+    expression: SUM(unidades)
+  registros:
+    description: Número de registros comerciales (filas de ventas).
+    unit: registros
+    decimals: 0
+    expression: COUNT(*)
+  precio_efectivo:
+    description: Venta neta por unidad (cociente de sumas, no media de precios).
+    unit: COP por unidad
+    decimals: 2
+    ratio:
+      numerator: venta_neta
+      denominator: unidades

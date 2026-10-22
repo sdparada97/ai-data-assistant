@@ -28,6 +28,10 @@ COMPARED_COLUMNS = (*TEXT_COLUMNS, "unidades", "venta_neta_cop")
 MONTH_PATTERN = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 INTEGER_PATTERN = re.compile(r"^-?\d+$")
 
+# Dimensiones de la fila afectada que se guardan en cada incidencia (recortadas y,
+# si el valor es válido, con la escritura del catálogo).
+ROW_DIMENSIONS = ("mes", "marca", "region", "canal", "presentacion", "punto_venta_id")
+
 ISSUE_COLUMNS = (
     "issue_id",
     "registro_id",
@@ -41,6 +45,7 @@ ISSUE_COLUMNS = (
     "action",
     "affected_net_sales_cop",
     "details",
+    *ROW_DIMENSIONS,
     "ingestion_id",
 )
 

@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792603693.4124594,
-    "seen": 1792603715.261141,
-    "ast_hash": "fe89b8b0e953f247462189bb1a2b7f43",
+    "mtime": 1792646625.654355,
+    "seen": 1792646675.1603727,
+    "ast_hash": "b29b3e316a4df73057607be1bfeb11aa",
     "semantic_hash": ""
   },
   "docs/architecture.md": {
-    "mtime": 1792603693.4117959,
-    "seen": 1792603715.2611773,
-    "ast_hash": "aef47d01721b6c0620836dd966c08a8f",
+    "mtime": 1792646625.651544,
+    "seen": 1792646675.1605058,
+    "ast_hash": "f21bb550b5beb2f1836cad2ef7483f0b",
     "semantic_hash": ""
   },
   "openspec/config.yaml": {
@@ -102,9 +102,9 @@
     "semantic_hash": ""
   },
   "backend/pyproject.toml": {
-    "mtime": 1792603231.251342,
-    "seen": 1792603715.2605748,
-    "ast_hash": "5bdb9ddf6ccff0c16c4f167be02d3a52",
+    "mtime": 1792646115.3308082,
+    "seen": 1792646675.158698,
+    "ast_hash": "6e025c45c4f364f97e43b9dc987e7efe",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/__init__.py": {
@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "openspec/ROADMAP.md": {
-    "mtime": 1792643574.2843876,
-    "seen": 1792643577.330083,
-    "ast_hash": "8b5d95bd2ee089c031dc7ed381b9c416",
+    "mtime": 1792649141.7989337,
+    "seen": 1792649143.0738597,
+    "ast_hash": "9c9a3e033398b4e6fec7aa5da4f996a1",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/.openspec.yaml": {
@@ -264,8 +264,8 @@
     "semantic_hash": ""
   },
   "pyproject.toml": {
-    "mtime": 1792554124.5888457,
-    "seen": 1792556543.6290636,
+    "mtime": 1792564743.6157787,
+    "seen": 1792643799.111773,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -324,15 +324,15 @@
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/ingestion/pipeline.py": {
-    "mtime": 1792605150.8668227,
-    "seen": 1792605171.7354102,
-    "ast_hash": "0db56b11dee3a5865e30a0cd6f02c91d",
+    "mtime": 1792646176.8705711,
+    "seen": 1792646675.1589742,
+    "ast_hash": "36adca5ebe12fa17443e893a4dc3fdc2",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/ingestion/rules.py": {
-    "mtime": 1792603449.7038379,
-    "seen": 1792603715.2606254,
-    "ast_hash": "8dc1009cdde49dcbeaafd89d4207df81",
+    "mtime": 1792646176.8646157,
+    "seen": 1792646675.158976,
+    "ast_hash": "83f4cb84a4a7c1d2274eb6c865ad3488",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/ingestion/schema.py": {
@@ -342,15 +342,15 @@
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/ingestion/storage.py": {
-    "mtime": 1792605150.8651016,
-    "seen": 1792605171.735451,
-    "ast_hash": "348f4f3fecb7f1eb036c5cfa9e6f7cf2",
+    "mtime": 1792646176.8738813,
+    "seen": 1792646675.1590166,
+    "ast_hash": "49921f529a3ac7734a7c7d6d8292c1cd",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/settings.py": {
-    "mtime": 1792603249.576584,
-    "seen": 1792603715.260648,
-    "ast_hash": "27e1a7e95aa5914419a00683cdd16f41",
+    "mtime": 1792646160.97022,
+    "seen": 1792646675.1590564,
+    "ast_hash": "381a45b7dfccf8d1c2fdefe177e747ea",
     "semantic_hash": ""
   },
   "backend/tests/ingestion/conftest.py": {
@@ -390,15 +390,15 @@
     "semantic_hash": ""
   },
   "backend/tests/ingestion/test_storage.py": {
-    "mtime": 1792603640.9815342,
-    "seen": 1792603715.2606537,
-    "ast_hash": "b78cc525236c03e437627fa5a6600058",
+    "mtime": 1792648707.8982472,
+    "seen": 1792648747.214426,
+    "ast_hash": "38d43a10a237076a61ee688feee81837",
     "semantic_hash": ""
   },
   "backend/tests/test_settings.py": {
-    "mtime": 1792603262.0861611,
-    "seen": 1792603715.260672,
-    "ast_hash": "a01de82e4aa8101267d5bef30b6079a2",
+    "mtime": 1792646160.9801595,
+    "seen": 1792646675.1593282,
+    "ast_hash": "b4c323a653ae883fcb22c036f9d26002",
     "semantic_hash": ""
   },
   "backend/config/data_quality.yaml": {
@@ -408,9 +408,9 @@
     "semantic_hash": ""
   },
   "backend/config/semantic_layer.yaml": {
-    "mtime": 1792603249.5772398,
-    "seen": 1792603715.2611427,
-    "ast_hash": "884a77a22de739d97bb84cad5dfce0bd",
+    "mtime": 1792646244.7355638,
+    "seen": 1792646675.160409,
+    "ast_hash": "794c02b2cf106d8a4978943515d71ac1",
     "semantic_hash": ""
   },
   "openspec/changes/archive/2026-10-21-add-sales-ingestion/.openspec.yaml": {
@@ -450,15 +450,159 @@
     "semantic_hash": ""
   },
   "openspec/specs/data-quality/spec.md": {
-    "mtime": 1792643560.5970337,
-    "seen": 1792643577.3303504,
-    "ast_hash": "95b60a2500259f2accef2c19e0d184ee",
+    "mtime": 1792649131.745769,
+    "seen": 1792649143.0741203,
+    "ast_hash": "34f6efc8f87617a2acc66f8771375af9",
     "semantic_hash": ""
   },
   "openspec/specs/sales-ingestion/spec.md": {
     "mtime": 1792643560.5978284,
     "seen": 1792643577.3303907,
     "ast_hash": "3132f1996f8eeca10c1caac0868728c1",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/__init__.py": {
+    "mtime": 1792646296.7549264,
+    "seen": 1792646675.158794,
+    "ast_hash": "f9c9ba57a00054ceb354c84a27cf7486",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/database.py": {
+    "mtime": 1792646416.6573021,
+    "seen": 1792646675.1587968,
+    "ast_hash": "922a187a5628d3877a09ee0f3a000054",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/evidence.py": {
+    "mtime": 1792646393.4146073,
+    "seen": 1792646675.1587987,
+    "ast_hash": "1b4f2b5e08ffcd9172e43a06e6c4234b",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/metrics.py": {
+    "mtime": 1792648685.8234887,
+    "seen": 1792648747.2140598,
+    "ast_hash": "dbeab18154cd19b1ebb1c101f28c4600",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/models.py": {
+    "mtime": 1792648685.8254035,
+    "seen": 1792648747.2140613,
+    "ast_hash": "a1b5286f56e4cf8a44795f0a2a7465c0",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/periods.py": {
+    "mtime": 1792646343.2375216,
+    "seen": 1792646675.1588035,
+    "ast_hash": "43afbdd3951d8de495630daba2a8bbe5",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/quality.py": {
+    "mtime": 1792648685.8250349,
+    "seen": 1792648747.2140827,
+    "ast_hash": "3bfb8795e59f10087dbb8d0999d5ff17",
+    "semantic_hash": ""
+  },
+  "backend/src/analyst_backend/analytics/semantic.py": {
+    "mtime": 1792648685.8256598,
+    "seen": 1792648747.214084,
+    "ast_hash": "af62ebab383396de860670983d7e6bbf",
+    "semantic_hash": ""
+  },
+  "backend/tests/analytics/conftest.py": {
+    "mtime": 1792646416.6585746,
+    "seen": 1792646675.1590583,
+    "ast_hash": "cad6f2e02257566436a51b48bfd17158",
+    "semantic_hash": ""
+  },
+  "backend/tests/analytics/test_database.py": {
+    "mtime": 1792646416.6595023,
+    "seen": 1792646675.1590629,
+    "ast_hash": "248a47791564be4b5b70d4beff9d9abc",
+    "semantic_hash": ""
+  },
+  "backend/tests/analytics/test_metrics.py": {
+    "mtime": 1792648707.9003186,
+    "seen": 1792648747.2143078,
+    "ast_hash": "4d9161dc013c8f3dbca10783b856538d",
+    "semantic_hash": ""
+  },
+  "backend/tests/analytics/test_models_evidence.py": {
+    "mtime": 1792648707.901152,
+    "seen": 1792648747.2143085,
+    "ast_hash": "27281726fb8eba29aab32a79b7e6dae3",
+    "semantic_hash": ""
+  },
+  "backend/tests/analytics/test_periods.py": {
+    "mtime": 1792646343.2384539,
+    "seen": 1792646675.1590679,
+    "ast_hash": "d1066bfd8c668008e85e5e59b5d04918",
+    "semantic_hash": ""
+  },
+  "backend/tests/analytics/test_quality.py": {
+    "mtime": 1792648730.734467,
+    "seen": 1792648747.2143269,
+    "ast_hash": "1ed8c2e153c98754191e2db8c27be96b",
+    "semantic_hash": ""
+  },
+  "backend/tests/analytics/test_semantic.py": {
+    "mtime": 1792648707.9009504,
+    "seen": 1792648747.2143276,
+    "ast_hash": "bf9f36d2d99db75565c9ab622cc61341",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-10-22-add-sales-analytics/.openspec.yaml": {
+    "mtime": 1792644655.8246317,
+    "seen": 1792649143.074097,
+    "ast_hash": "8dc49b4fe381379a3a28d72313f76df6",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-10-22-add-sales-analytics/design.md": {
+    "mtime": 1792648730.7353644,
+    "seen": 1792649143.074098,
+    "ast_hash": "43ac6364cf1cb7f93618dd3ace806612",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-10-22-add-sales-analytics/proposal.md": {
+    "mtime": 1792644716.9838448,
+    "seen": 1792649143.0740988,
+    "ast_hash": "d1018cdc5147abc476800a69dc49cd9d",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-10-22-add-sales-analytics/specs/data-quality/spec.md": {
+    "mtime": 1792649131.745639,
+    "seen": 1792649143.0740998,
+    "ast_hash": "3bce76209fe0190cc961e62b0739d58b",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-10-22-add-sales-analytics/specs/sales-metrics/spec.md": {
+    "mtime": 1792648730.7348287,
+    "seen": 1792649143.0741007,
+    "ast_hash": "c34ebbf15bead0dbcb73154ea4f57fde",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-10-22-add-sales-analytics/specs/semantic-layer/spec.md": {
+    "mtime": 1792645220.7019467,
+    "seen": 1792649143.0741014,
+    "ast_hash": "36a56658df4e93271e206774510506e5",
+    "semantic_hash": ""
+  },
+  "openspec/changes/archive/2026-10-22-add-sales-analytics/tasks.md": {
+    "mtime": 1792646675.9448576,
+    "seen": 1792649143.0741022,
+    "ast_hash": "f785a7980514eb97de9b8298437bc845",
+    "semantic_hash": ""
+  },
+  "openspec/specs/sales-metrics/spec.md": {
+    "mtime": 1792649115.726024,
+    "seen": 1792649143.0741582,
+    "ast_hash": "30a938f60b03c817f3221b4989562ba6",
+    "semantic_hash": ""
+  },
+  "openspec/specs/semantic-layer/spec.md": {
+    "mtime": 1792649115.7258358,
+    "seen": 1792649143.0741591,
+    "ast_hash": "851cf43bba2568a1d5f12e93f8c7d398",
     "semantic_hash": ""
   }
 }
