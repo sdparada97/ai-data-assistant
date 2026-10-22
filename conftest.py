@@ -2,6 +2,8 @@
 
 Toda prueba sin la marca ``llm`` se ejecuta sin red y sin las variables
 declaradas en ``.env.example``, aunque existan en el entorno del desarrollador.
+Las pruebas con la marca ``embeddings`` conservan solo ``MODELS_CACHE_DIR``,
+para encontrar el modelo ya descargado; siguen sin red.
 """
 
 from __future__ import annotations
@@ -17,6 +19,8 @@ pytest_plugins = ["pytester"]
 
 ENV_EXAMPLE = Path(__file__).parent / ".env.example"
 _BLOCKED_FAMILIES = {socket.AF_INET, socket.AF_INET6}
+# Variable que conservan las pruebas ``embeddings``: la ruta de la caché de modelos.
+EMBEDDINGS_KEPT_VARIABLES = frozenset({"MODELS_CACHE_DIR"})
 
 
 class NetworkDisabledError(RuntimeError):
@@ -79,8 +83,10 @@ def _isolate_default_suite(
     request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[None]:
     if request.node.get_closest_marker("llm") is None:
+        kept = EMBEDDINGS_KEPT_VARIABLES if request.node.get_closest_marker("embeddings") else frozenset()
         for name in env_example_variables():
-            monkeypatch.delenv(name, raising=False)
+            if name not in kept:
+                monkeypatch.delenv(name, raising=False)
         monkeypatch.setattr(socket.socket, "connect", _blocked_connect)
         monkeypatch.setattr(socket.socket, "connect_ex", _blocked_connect_ex)
         monkeypatch.setattr(socket.socket, "sendto", _blocked_sendto)

@@ -10,20 +10,35 @@ SALES_CSV_PATH ?= data/raw/02_Ventas_2026.csv
 DUCKDB_PATH ?= data/processed/analytics.duckdb
 SEMANTIC_LAYER_PATH ?= backend/config/semantic_layer.yaml
 DATA_QUALITY_PATH ?= backend/config/data_quality.yaml
-DEFAULT_FILTER := not llm
+# Documentos y modelo de embeddings.
+DOCUMENTS_DIR ?= data/raw
+DOCUMENTS_DB_PATH ?= data/processed/documents.duckdb
+DOCUMENTS_CONFIG_PATH ?= backend/config/documents.yaml
+MODELS_CACHE_DIR ?= .cache/models
+DEFAULT_FILTER := not llm and not embeddings
 LLM_FILTER := llm
+EMBEDDINGS_FILTER := embeddings
 
-.PHONY: help test test-llm eval up ingest
+.PHONY: help test test-llm test-embeddings eval up ingest ingest-docs models
 
 help: ## Lista los objetivos disponibles
-	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-10s %s\n", $$1, $$2}'
+	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-16s %s\n", $$1, $$2}'
 
-test: ## Pruebas sin LLM, red ni credenciales
+test: ## Pruebas sin LLM, modelo de embeddings, red ni credenciales
 	$(UV_RUN) pytest -m "$(DEFAULT_FILTER)"
 
 test-llm: ## Solo pruebas marcadas @pytest.mark.llm (requieren red y credenciales)
 	@$(UV_RUN) pytest -m "$(LLM_FILTER)"; rc=$$?; \
 	if [ $$rc -eq 5 ]; then echo "No hay pruebas llm"; exit 0; fi; exit $$rc
+
+models: ## Descarga el modelo de embeddings en MODELS_CACHE_DIR y comprueba su huella
+	@MODELS_CACHE_DIR="$(MODELS_CACHE_DIR)" DOCUMENTS_CONFIG_PATH="$(DOCUMENTS_CONFIG_PATH)" \
+	$(UV_RUN) python -m analyst_backend.documents.models_cli
+
+test-embeddings: ## Solo pruebas marcadas @pytest.mark.embeddings, con el modelo real y sin red (requiere make models)
+	@MODELS_CACHE_DIR="$(MODELS_CACHE_DIR)" DOCUMENTS_CONFIG_PATH="$(DOCUMENTS_CONFIG_PATH)" \
+	$(UV_RUN) python -m analyst_backend.documents.models_cli --check
+	MODELS_CACHE_DIR="$(MODELS_CACHE_DIR)" $(UV_RUN) pytest -m "$(EMBEDDINGS_FILTER)"
 
 eval: ## Evaluación con el golden set (pendiente)
 	@echo "Evaluación no disponible: pendiente del change add-evaluation-suite" >&2; exit 1
@@ -32,6 +47,11 @@ ingest: ## Carga el CSV de ventas en DuckDB aplicando las reglas de calidad
 	@SALES_CSV_PATH="$(SALES_CSV_PATH)" DUCKDB_PATH="$(DUCKDB_PATH)" \
 	SEMANTIC_LAYER_PATH="$(SEMANTIC_LAYER_PATH)" DATA_QUALITY_PATH="$(DATA_QUALITY_PATH)" \
 	$(UV_RUN) python -m analyst_backend.ingestion
+
+ingest-docs: ## Convierte y fragmenta los documentos y publica su base con embeddings (requiere make models)
+	@DOCUMENTS_DIR="$(DOCUMENTS_DIR)" DOCUMENTS_DB_PATH="$(DOCUMENTS_DB_PATH)" \
+	DOCUMENTS_CONFIG_PATH="$(DOCUMENTS_CONFIG_PATH)" MODELS_CACHE_DIR="$(MODELS_CACHE_DIR)" \
+	$(UV_RUN) python -m analyst_backend.documents
 
 up: ## Levanta backend y frontend con Docker Compose
 	docker compose up --build

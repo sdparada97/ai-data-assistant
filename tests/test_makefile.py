@@ -1,5 +1,5 @@
-"""Requisitos: Suite de pruebas sin servicios externos, Pruebas con LLM separadas
-y Evaluación reservada."""
+"""Requisitos: Suite de pruebas sin servicios externos, Pruebas con LLM separadas,
+Pruebas con el modelo de embeddings separadas y Evaluación reservada."""
 
 from __future__ import annotations
 
@@ -23,6 +23,10 @@ import pytest
 def test_with_llm():
     pass
 
+@pytest.mark.embeddings
+def test_with_embeddings():
+    pass
+
 def test_without_marker():
     pass
 """
@@ -42,7 +46,7 @@ def _marker_filter(target: str) -> str:
 
 
 def _collect_sample(pytester: pytest.Pytester, marker_filter: str) -> list[str]:
-    pytester.makeini("[pytest]\nmarkers =\n    llm: prueba con LLM real\n")
+    pytester.makeini("[pytest]\nmarkers =\n    llm: prueba con LLM real\n    embeddings: prueba con el modelo real\n")
     pytester.makepyfile(test_sample=SAMPLE_TESTS)
     result = pytester.runpytest("--collect-only", "-q", "-m", marker_filter)
     return [line for line in result.outlines if "::" in line]
@@ -66,7 +70,8 @@ def test_default_filter_collects_from_all_three_locations() -> None:
         assert any(node_id.startswith(location) for node_id in node_ids), location
 
 
-def test_default_filter_excludes_llm_tests(pytester: pytest.Pytester) -> None:
+def test_default_filter_excludes_llm_and_embeddings_tests(pytester: pytest.Pytester) -> None:
+    # Escenarios "Pruebas llm excluidas" y "Pruebas embeddings excluidas".
     collected = _collect_sample(pytester, _marker_filter("test"))
 
     assert collected == ["test_sample.py::test_without_marker"]
@@ -86,6 +91,15 @@ def test_llm_filter_collects_only_marked_tests(pytester: pytest.Pytester) -> Non
     collected = _collect_sample(pytester, _marker_filter("test-llm"))
 
     assert collected == ["test_sample.py::test_with_llm"]
+
+
+# --- Pruebas con el modelo de embeddings separadas ----------------------------
+
+
+def test_embeddings_filter_collects_only_marked_tests(pytester: pytest.Pytester) -> None:
+    collected = _collect_sample(pytester, _marker_filter("test-embeddings"))
+
+    assert collected == ["test_sample.py::test_with_embeddings"]
 
 
 # --- Evaluación reservada ----------------------------------------------------

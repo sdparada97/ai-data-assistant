@@ -23,4 +23,5 @@ testpaths = ["backend/tests", "frontend/tests", "tests"]
 addopts = ["--strict-markers", "--import-mode=importlib"]
 markers = [
     "llm: prueba que llama a un LLM real; requiere red y credenciales (make test-llm)",
+    "embeddings: prueba con el modelo de embeddings real, sin red; requiere make models (make test-embeddings)",
 ]

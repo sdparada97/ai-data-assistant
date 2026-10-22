@@ -13,3 +13,4 @@ conftest.py
 **/tests
 .env
 .env.*
+.cache

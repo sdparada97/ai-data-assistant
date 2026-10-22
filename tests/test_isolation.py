@@ -83,3 +83,36 @@ def test_local_unix_sockets_keep_native_behaviour(tmp_path: Path) -> None:
     # connect_ex sobre un socket local inexistente devuelve un código, no lanza.
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as local:
         assert local.connect_ex(str(tmp_path / "missing.sock")) != 0
+
+
+def test_embeddings_tests_keep_only_models_cache_dir(
+    pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Escenario "Caché de modelos en pruebas embeddings".
+    pytester.makeconftest((ROOT / "conftest.py").read_text(encoding="utf-8"))
+    pytester.makeini("[pytest]\nmarkers =\n    embeddings: prueba con el modelo real\n")
+    (pytester.path / ".env.example").write_text(
+        (ROOT / ".env.example").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    pytester.makepyfile(
+        """
+        import os
+        import socket
+        import pytest
+
+        @pytest.mark.embeddings
+        def test_probe():
+            assert os.environ["MODELS_CACHE_DIR"] == "/tmp/modelos-de-prueba"
+            assert "GEMINI_API_KEY" not in os.environ
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp:
+                tcp.settimeout(1)
+                with pytest.raises(RuntimeError, match="Red deshabilitada"):
+                    tcp.connect(("203.0.113.1", 80))
+        """
+    )
+    monkeypatch.setenv("MODELS_CACHE_DIR", "/tmp/modelos-de-prueba")
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-key-for-test")
+
+    result = pytester.runpytest_subprocess("-p", "no:cacheprovider")
+
+    result.assert_outcomes(passed=1)

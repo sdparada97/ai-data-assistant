@@ -14,6 +14,8 @@ from pathlib import Path
 
 INGESTION_VARIABLES = ("SALES_CSV_PATH", "DUCKDB_PATH", "SEMANTIC_LAYER_PATH", "DATA_QUALITY_PATH")
 ANALYTICS_VARIABLES = ("DUCKDB_PATH", "SEMANTIC_LAYER_PATH")
+DOCUMENTS_VARIABLES = ("DOCUMENTS_DIR", "DOCUMENTS_DB_PATH", "DOCUMENTS_CONFIG_PATH", "MODELS_CACHE_DIR")
+MODELS_VARIABLES = ("DOCUMENTS_CONFIG_PATH", "MODELS_CACHE_DIR")
 
 
 class SettingsError(RuntimeError):
@@ -37,6 +39,14 @@ def _resolve(value: str, base_dir: Path) -> Path:
 class AnalyticsSettings:
     duckdb_path: Path
     semantic_layer_path: Path
+
+
+@dataclass(frozen=True)
+class DocumentsSettings:
+    documents_dir: Path
+    documents_db_path: Path
+    documents_config_path: Path
+    models_cache_dir: Path
 
 
 def _read_paths(
@@ -72,3 +82,30 @@ def load_analytics_settings(
     """Lee las rutas que necesitan las herramientas de consulta."""
     paths = _read_paths(ANALYTICS_VARIABLES, "las consultas", environ, base_dir)
     return AnalyticsSettings(duckdb_path=paths["DUCKDB_PATH"], semantic_layer_path=paths["SEMANTIC_LAYER_PATH"])
+
+
+def load_documents_settings(
+    environ: Mapping[str, str] | None = None, base_dir: Path | None = None
+) -> DocumentsSettings:
+    """Lee las rutas de la ingesta y la búsqueda de documentos y de la caché de modelos."""
+    paths = _read_paths(DOCUMENTS_VARIABLES, "los documentos", environ, base_dir)
+    return DocumentsSettings(
+        documents_dir=paths["DOCUMENTS_DIR"],
+        documents_db_path=paths["DOCUMENTS_DB_PATH"],
+        documents_config_path=paths["DOCUMENTS_CONFIG_PATH"],
+        models_cache_dir=paths["MODELS_CACHE_DIR"],
+    )
+
+
+@dataclass(frozen=True)
+class ModelsSettings:
+    documents_config_path: Path
+    models_cache_dir: Path
+
+
+def load_models_settings(environ: Mapping[str, str] | None = None, base_dir: Path | None = None) -> ModelsSettings:
+    """Lee las rutas que necesita `make models`: la configuración de documentos y la caché."""
+    paths = _read_paths(MODELS_VARIABLES, "la descarga del modelo", environ, base_dir)
+    return ModelsSettings(
+        documents_config_path=paths["DOCUMENTS_CONFIG_PATH"], models_cache_dir=paths["MODELS_CACHE_DIR"]
+    )

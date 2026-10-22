@@ -160,6 +160,17 @@ Preliminar, elaborado antes de conciliar la base. Pide verificarse contra fuente
 | REP-04 | Promociones tácticas en Centro | Basada en REP-01, que es falsa. |
 | REP-06 | Revisar presentación, canal y precio efectivo | Hecho aquí: la caída es transversal a canal y presentación, y el precio efectivo no cambió. |
 
+### Estructura de los documentos (verificada para la ingesta)
+
+Estos hechos sustentan la conversión a Markdown y la fragmentación del change `add-document-retrieval` (parámetros en `backend/config/documents.yaml`):
+
+- **IDs de evidencia:** `REP-01`…`REP-06`, `INV-01`…`INV-05`, `INV-LIM-01`…`INV-LIM-04` (y `INV-LIM` suelto en el índice de referencias), `ENT-SUR-03`, `ENT-SUR-07`, `ENT-CEN-04`, `ENT-NOR-02`, `OC-SUR-01`…`OC-OCC-05`, `OC-EXT-06` y 10 `CAM-*`. Los códigos de punto de venta (`OC-T-001`, `SU-T-003`…) no son IDs de evidencia.
+- **PDF (03 y 05):** un título por página en 17 pt (el primero es el del documento), secciones numeradas (`N. Título`) en unos 11,2 pt, y la misma cabecera y pie (`ALMENA FOODS / …`, `… · BRÍO`, `Página N`) en cada página.
+- **Tablas de PDF:** no tienen líneas; cada fila es un rectángulo de fondo (el encabezado, oscuro) y hay celdas de dos líneas centradas en vertical. `find_tables()` de PyMuPDF no las detecta.
+- **Word (04):** `INSUMO DE NEGOCIO` aparece antes del estilo `Title`; secciones con `Heading 1`, registros `OC-*` con `Heading 2`, viñetas con estilo de lista y 2 tablas. La de registros tiene la columna `ID / fecha` (`CAM-101  2026-04-09`, con doble espacio).
+- **`OC-EXT-06`:** texto importado de un proveedor con instrucciones dirigidas a "el asistente de IA". Es un dato de prueba: se carga y se devuelve como evidencia, sin efecto en la búsqueda.
+- **Markdown (01):** secciones `##`, a veces sin línea en blanco tras el título, y una tabla (diccionario de datos).
+
 ## Contradicciones entre fuentes
 
 1. **Región con mayor caída:** el reporte (REP-01) y la supervisora de Centro (OC-CEN-02) dicen Centro; los datos dicen Sur (−30,27 % frente a −9,03 %).

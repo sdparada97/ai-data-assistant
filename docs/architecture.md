@@ -12,6 +12,7 @@ Solo decisiones y límites. La estructura de carpetas se consulta en el grafo (`
 | D4 | Python 3.14 (`.python-version`) y workspace de uv con un único `uv.lock` versionado; dependencias directas con `==` | Entorno reproducible y una sola resolución de dependencias para backend y frontend. |
 | D5 | Base de ventas en DuckDB con cuatro tablas: `sales` (única fuente de cifras), `sales_review` (filas retenidas para revisión), `dq_issues` (cada actuación de una regla de calidad) e `ingestion_runs` (carga publicada). Se reconstruye entera en cada carga y se publica de forma atómica. El catálogo de valores válidos vive en `backend/config/semantic_layer.yaml`. | Cifras trazables y reproducibles; las inconsistencias quedan explícitas y consultables. Change `add-sales-ingestion`. |
 | D6 | Capa semántica en `semantic_layer.yaml` (métricas agregadas con expresión validada y métricas cociente, alias y dimensiones) y herramientas `consultar_metrica` y `calidad_datos` como funciones Python puras de solo lectura: el LLM elige parámetros, el código genera el SQL con valores enlazados, los períodos son expresiones de calendario y cada resultado lleva `evidence_id`, `ingestion_id` y los avisos de calidad de su corte. | Ninguna cifra depende del LLM; resultados reproducibles y trazables. Change `add-sales-analytics`. |
+| D7 | Documentos: PDF y Word se convierten con código propio (PyMuPDF, python-docx) a un Markdown normalizado (`#`/`##`/`###`, tablas GFM, marcas de página; las tablas de PDF sin bordes se reconstruyen con los rectángulos de fondo de cada fila) y un único fragmentador de Markdown corta por sección y por ID de evidencia. Embeddings con fastembed (`paraphrase-multilingual-MiniLM-L12-v2`, 384 dimensiones) detrás de una interfaz `Embedder`, fijados por la huella SHA-256 del archivo del modelo y cargados solo desde la caché (`make models`). Base propia `documents.duckdb` (`documents`, `doc_chunks`, `doc_ingestion_runs`) con publicación atómica. `buscar_documentos`: BM25 (`rank-bm25` con el IDF de Lucene, que nunca da peso 0 a una palabra presente) + coseno con RRF; sin modelo o con otro modelo, solo BM25 con aviso. Qdrant en modo local se evaluó y se descartó: misma calidad, más dependencias y bloqueo de su almacén a un solo proceso. | Un solo juego de reglas de fragmentación; fragmentos citables por su ID; búsqueda reproducible y sin red; el contenido documental se devuelve como evidencia, nunca como instrucciones. Change `add-document-retrieval`. |
 
 <!-- Añade aquí stack, almacenamiento, proveedor de LLM, etc. cuando se decidan (vía un change de OpenSpec). -->
 
@@ -23,7 +24,7 @@ Solo decisiones y límites. La estructura de carpetas se consulta en el grafo (`
 
 ## Arquitectura de Brío Analyst
 
-Arquitectura objetivo de referencia. Cada pieza se formaliza en su change de OpenSpec (ver `openspec/ROADMAP.md`); si un change la modifica, actualiza esta sección. Las decisiones D1, D2', D3, D4, D5 y D6 siguen vigentes.
+Arquitectura objetivo de referencia. Cada pieza se formaliza en su change de OpenSpec (ver `openspec/ROADMAP.md`); si un change la modifica, actualiza esta sección. Las decisiones D1, D2', D3, D4, D5, D6 y D7 siguen vigentes.
 
 ### Propósito
 
@@ -53,8 +54,8 @@ Un analista pregunta en lenguaje natural y recibe respuestas fundamentadas. Ejem
 - **Backend:** Python 3.14 (D4), FastAPI y LangGraph para la orquestación. LangChain solo para integraciones de modelo (`langchain-google-genai`, `langchain-ollama`), tools y salida estructurada.
 - **Frontend:** Streamlit, que consume la API. Todo se levanta con Docker Compose.
 - **Datos:** DuckDB embebido (read-only para consultas) y una capa semántica en `semantic_layer.yaml` (métricas, dimensiones, valores válidos, definiciones de negocio).
-- **Ingesta** determinista e idempotente (D5): limpieza con las reglas de calidad aprobadas en `docs/EXPLORACION_DATOS.md` y verificación final con Pandera; tablas `sales`, `sales_review`, `dq_issues` e `ingestion_runs`; documentos parseados con PyMuPDF / python-docx / markdown en chunks por sección con metadatos (`doc_id`, `tipo_fuente`, página/sección, `chunk_id`).
-- **Recuperación híbrida:** BM25 (`rank-bm25`) más embeddings locales multilingües con `fastembed` (sin PyTorch), combinados con RRF.
+- **Ingesta** determinista e idempotente (D5): limpieza con las reglas de calidad aprobadas en `docs/EXPLORACION_DATOS.md` y verificación final con Pandera; tablas `sales`, `sales_review`, `dq_issues` e `ingestion_runs`; documentos convertidos a Markdown y fragmentados por sección y por ID de evidencia con metadatos (`doc_id`, `source_type`, página/sección, `primary_evidence_id`, `chunk_id`) (D7).
+- **Recuperación híbrida:** BM25 (`rank-bm25`) más embeddings locales multilingües con `fastembed` (sin PyTorch), combinados con RRF; degradación a BM25 con aviso (D7).
 - **Herramientas**, cada una con su `evidence_id`:
   - `consultar_metrica`: SQL generado desde el YAML de la capa semántica.
   - `sql_libre`: validado con sqlglot (solo SELECT, allowlist, LIMIT, timeout).

@@ -46,3 +46,6 @@ graphify-out/graph.html
 # Datos derivados (Brío Analyst)
 data/processed/
 *.duckdb
+
+# Caché de modelos de embeddings (make models)
+.cache/
