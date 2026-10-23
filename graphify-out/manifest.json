@@ -42,21 +42,21 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1792554000.57119,
-    "seen": 1792554331.3467627,
-    "ast_hash": "eb32500e511ce2cf2d9fcfaa374676dd",
+    "mtime": 1792730379.126418,
+    "seen": 1792730461.3788645,
+    "ast_hash": "09b2fb6918e577086e8098ef8dddc399",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792728355.7915342,
-    "seen": 1792728423.8989215,
-    "ast_hash": "46e9d5aba47e741375d9c640812616e2",
+    "mtime": 1792730379.127523,
+    "seen": 1792730461.3788664,
+    "ast_hash": "200276763db4ba7cc7ef24ffa005cef9",
     "semantic_hash": ""
   },
   "docs/architecture.md": {
-    "mtime": 1792728355.790091,
-    "seen": 1792728423.8990488,
-    "ast_hash": "30f8e7a74c56dc5044710e38e7093c00",
+    "mtime": 1792730379.127901,
+    "seen": 1792730461.3788812,
+    "ast_hash": "92f769b0cfb02cdaedd245aa554af71c",
     "semantic_hash": ""
   },
   "openspec/config.yaml": {
@@ -221,12 +221,6 @@
     "ast_hash": "00eb46b0352f0eeb881f6a91c3e07d17",
     "semantic_hash": ""
   },
-  "openspec/ROADMAP.md": {
-    "mtime": 1792728367.2540152,
-    "seen": 1792728423.8990498,
-    "ast_hash": "53a14ac77b2c60840c81535aff162673",
-    "semantic_hash": ""
-  },
   "openspec/changes/archive/2026-10-20-restructure-monorepo-layout/.openspec.yaml": {
     "mtime": 1792551791.9117,
     "seen": 1792556417.3516579,
@@ -265,8 +259,8 @@
   },
   "pyproject.toml": {
     "mtime": 1792654931.816452,
-    "seen": 1792723044.2272282,
-    "ast_hash": "",
+    "seen": 1792730461.3788245,
+    "ast_hash": "59ae75ae8f458b95adc517b1a4aa51dc",
     "semantic_hash": ""
   },
   "backend/scripts/explore_data.py": {
@@ -816,9 +810,9 @@
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/agent/config.py": {
-    "mtime": 1792726925.5070028,
-    "seen": 1792728423.8971646,
-    "ast_hash": "068c262bc1f96d442cd89dcf2d58fe65",
+    "mtime": 1792729750.3861077,
+    "seen": 1792730461.378625,
+    "ast_hash": "fb6a98ef2be0baa96e3d11c740184e56",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/agent/context.py": {
@@ -870,9 +864,9 @@
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/agent/tools.py": {
-    "mtime": 1792727719.1004078,
-    "seen": 1792728423.8972454,
-    "ast_hash": "2a6764b6166f23643bb64a14bc669711",
+    "mtime": 1792729606.9711452,
+    "seen": 1792730461.3786469,
+    "ast_hash": "c25fc8370f031420fe701de16593fb9e",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/agent/verify.py": {
@@ -900,9 +894,9 @@
     "semantic_hash": ""
   },
   "backend/tests/agent/test_config.py": {
-    "mtime": 1792726882.4907446,
-    "seen": 1792728423.8978467,
-    "ast_hash": "2f76719e93aee596df8377ff4033c20b",
+    "mtime": 1792729795.8151865,
+    "seen": 1792730461.3787255,
+    "ast_hash": "8ca4172bcb7df839d9900662bb5e7f5f",
     "semantic_hash": ""
   },
   "backend/tests/agent/test_context.py": {
@@ -924,9 +918,9 @@
     "semantic_hash": ""
   },
   "backend/tests/agent/test_graph.py": {
-    "mtime": 1792728080.1949959,
-    "seen": 1792728423.8978972,
-    "ast_hash": "4656a1c26379b57b9c9cec1c3b732ece",
+    "mtime": 1792729708.9574897,
+    "seen": 1792730461.3787377,
+    "ast_hash": "88eea737cc09de5be0c7a0a67379c2c5",
     "semantic_hash": ""
   },
   "backend/tests/agent/test_llm.py": {
@@ -936,9 +930,9 @@
     "semantic_hash": ""
   },
   "backend/tests/agent/test_tools.py": {
-    "mtime": 1792727874.3476424,
-    "seen": 1792728423.8979187,
-    "ast_hash": "c030be132ce3ab42c21227f64e745cae",
+    "mtime": 1792729708.9523895,
+    "seen": 1792730461.3787413,
+    "ast_hash": "4c4d73ae055d5e177bc4632809e35843",
     "semantic_hash": ""
   },
   "backend/tests/agent/test_verify.py": {
@@ -1008,9 +1002,9 @@
     "semantic_hash": ""
   },
   "openspec/specs/query-agent/spec.md": {
-    "mtime": 1792722813.1923335,
-    "seen": 1792722829.6660867,
-    "ast_hash": "e9199b67c46f300e747bfe3d594d4c00",
+    "mtime": 1792730336.1258159,
+    "seen": 1792730461.3789914,
+    "ast_hash": "8588a982ef7598b3eec46c18d4a9be28",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/api/__init__.py": {
@@ -1122,9 +1116,9 @@
     "semantic_hash": ""
   },
   "openspec/specs/analyst-ui/spec.md": {
-    "mtime": 1792722813.1920266,
-    "seen": 1792722829.6660323,
-    "ast_hash": "1781e3c6c6079b12934d3f873986c102",
+    "mtime": 1792730336.12756,
+    "seen": 1792730461.3789785,
+    "ast_hash": "7af03f7980db1cba709d7a81e270b338",
     "semantic_hash": ""
   },
   "openspec/specs/query-api/spec.md": {
@@ -1134,15 +1128,15 @@
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/agent/extraction.py": {
-    "mtime": 1792727693.1057055,
-    "seen": 1792728423.8971856,
-    "ast_hash": "83dffbacd4f76d60c1d5675cbea1ea94",
+    "mtime": 1792729582.7293322,
+    "seen": 1792730461.3786323,
+    "ast_hash": "4c8daca202d8dc765050c086e9bc5183",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/analytics/causal.py": {
-    "mtime": 1792727181.9594975,
-    "seen": 1792728423.8972661,
-    "ast_hash": "19b9777953b149ab45c3cc4764c22787",
+    "mtime": 1792729574.0203817,
+    "seen": 1792730461.3786526,
+    "ast_hash": "1ad7b913f8661ae4ef7ef4645c326b3e",
     "semantic_hash": ""
   },
   "backend/src/analyst_backend/analytics/contrast.py": {
@@ -1158,15 +1152,15 @@
     "semantic_hash": ""
   },
   "backend/tests/agent/test_extraction.py": {
-    "mtime": 1792727693.105872,
-    "seen": 1792728423.8978662,
-    "ast_hash": "bc5720871108cdfc026df70eb91f1818",
+    "mtime": 1792729698.4897757,
+    "seen": 1792730461.378732,
+    "ast_hash": "228ade63ad1a5414417745733ee02868",
     "semantic_hash": ""
   },
   "backend/tests/analytics/test_causal.py": {
-    "mtime": 1792727127.64113,
-    "seen": 1792728423.897939,
-    "ast_hash": "ecda8087367c65d5dba06e9fdd6d8d84",
+    "mtime": 1792729708.9574897,
+    "seen": 1792730461.378747,
+    "ast_hash": "08ca40cd1d37849065d6d2ef372e09ec",
     "semantic_hash": ""
   },
   "backend/tests/analytics/test_contrast.py": {
@@ -1181,52 +1175,64 @@
     "ast_hash": "e1009cad814ff74ac0ca315468cd8d08",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/.openspec.yaml": {
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/.openspec.yaml": {
     "mtime": 1792723724.5119252,
-    "seen": 1792728423.899051,
+    "seen": 1792730461.3789225,
     "ast_hash": "db874330e3bdf09469eb2e2124cebd99",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/design.md": {
-    "mtime": 1792725839.153726,
-    "seen": 1792728423.8990521,
-    "ast_hash": "feed29cfbf2e2ee5e56ef65ca6eaeb62",
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/design.md": {
+    "mtime": 1792729830.7148435,
+    "seen": 1792730461.3789246,
+    "ast_hash": "ef27c84a03e283ecdf63d30f336a8f38",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/proposal.md": {
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/proposal.md": {
     "mtime": 1792725869.4115133,
-    "seen": 1792728423.8990533,
+    "seen": 1792730461.3789263,
     "ast_hash": "117e71aafcbda3a3daec12464e270b6a",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/specs/analyst-ui/spec.md": {
-    "mtime": 1792725058.7605593,
-    "seen": 1792728423.899054,
-    "ast_hash": "8b46b697b932ccf93eff90b524023f22",
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/specs/analyst-ui/spec.md": {
+    "mtime": 1792729824.2608564,
+    "seen": 1792730461.378928,
+    "ast_hash": "0487b0ddf9217500eb1cc4b26ae66b83",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/specs/causal-assessment/spec.md": {
-    "mtime": 1792725758.44311,
-    "seen": 1792728423.899055,
-    "ast_hash": "876727ea75c46815cf92196f2dac9100",
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/specs/causal-assessment/spec.md": {
+    "mtime": 1792729824.257506,
+    "seen": 1792730461.3789294,
+    "ast_hash": "cf399905f192e84423c60f359fff89f4",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/specs/query-agent/spec.md": {
-    "mtime": 1792725869.4103458,
-    "seen": 1792728423.899056,
-    "ast_hash": "54bc126ab3920180ea6aaec901b96d18",
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/specs/query-agent/spec.md": {
+    "mtime": 1792729824.2606506,
+    "seen": 1792730461.3789313,
+    "ast_hash": "298f1338a0f1a843f75471a0b5eb2559",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/specs/report-contrast/spec.md": {
-    "mtime": 1792725711.3683517,
-    "seen": 1792728423.8990567,
-    "ast_hash": "7871f81ec50adffbbafd43dd27bb426d",
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/specs/report-contrast/spec.md": {
+    "mtime": 1792729836.6147711,
+    "seen": 1792730461.3789325,
+    "ast_hash": "96381e1a2282a841299938e1fba34e31",
     "semantic_hash": ""
   },
-  "openspec/changes/add-contrast-and-causal-analysis/tasks.md": {
-    "mtime": 1792728367.2563875,
-    "seen": 1792728423.8990576,
-    "ast_hash": "6de5ea34f731dd9e10b5f754207f229c",
+  "openspec/changes/archive/2026-10-22-add-contrast-and-causal-analysis/tasks.md": {
+    "mtime": 1792728429.2274938,
+    "seen": 1792730461.3789344,
+    "ast_hash": "4aad6360fe073a49b32ecef2d0915d9e",
+    "semantic_hash": ""
+  },
+  "openspec/specs/causal-assessment/spec.md": {
+    "mtime": 1792730336.1238089,
+    "seen": 1792730461.3789804,
+    "ast_hash": "ae57c45a7618a228577da75d21368887",
+    "semantic_hash": ""
+  },
+  "openspec/specs/report-contrast/spec.md": {
+    "mtime": 1792730336.1222186,
+    "seen": 1792730461.3789954,
+    "ast_hash": "dc3a00946c2624c35f0259015e0d269d",
     "semantic_hash": ""
   }
 }
