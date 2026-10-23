@@ -32,6 +32,11 @@ SYNTHESIS = json_message(
 )
 
 
+def max_three(config: AgentConfig) -> AgentConfig:
+    """Los escenarios de máximos usan 3 consultas por herramienta, sea cual sea el valor de agent.yaml."""
+    return config.model_copy(update={"limits": config.limits.model_copy(update={"max_calls_per_tool": 3})})
+
+
 def metric(args: dict[str, Any], call_id: str = "m1") -> dict[str, Any]:
     return tool_call("consultar_metrica", args, call_id)
 
@@ -98,7 +103,7 @@ def test_two_queries_to_the_same_database(bases: Bases, agent_config: AgentConfi
 
 def test_queries_above_the_maximum(bases: Bases, agent_config: AgentConfig) -> None:
     calls = [search(f"promociones {i}", f"d{i}") for i in range(5)]
-    deps = make_deps(bases, agent_config, plan_message(*calls), SYNTHESIS)
+    deps = make_deps(bases, max_three(agent_config), plan_message(*calls), SYNTHESIS)
 
     response = run_graph("¿Qué dicen los documentos sobre promociones?", deps)
 
@@ -158,7 +163,7 @@ def test_invalid_arguments_reach_the_correction(bases: Bases, agent_config: Agen
 
 def test_discarded_and_failed_queries_get_a_reply_each(bases: Bases, agent_config: AgentConfig) -> None:
     calls = [search(f"promociones {i}", f"d{i}") for i in range(4)] + [metric(ZETA, "z")]
-    deps = make_deps(bases, agent_config, plan_message(*calls), plan_message(), SYNTHESIS)
+    deps = make_deps(bases, max_three(agent_config), plan_message(*calls), plan_message(), SYNTHESIS)
 
     response = run_graph("Promociones y ventas de Zeta", deps)
 
@@ -216,7 +221,7 @@ def test_partial_correction_declares_what_is_left(bases: Bases, agent_config: Ag
 def test_correction_at_the_maximum_is_executed(bases: Bases, agent_config: AgentConfig) -> None:
     units = {**LARGEST_DROP, "metrics": ["unidades"], "sort": {**LARGEST_DROP["sort"], "metric": "unidades"}}
     deps = make_deps(
-        bases, agent_config,
+        bases, max_three(agent_config),
         plan_message(metric(LARGEST_DROP, "a"), metric(units, "b"), metric(ZETA, "c")),  # 3 = el máximo
         plan_message(metric(BRIO_2026, "d")),
         SYNTHESIS,
@@ -232,7 +237,7 @@ def test_correction_at_the_maximum_is_executed(bases: Bases, agent_config: Agent
 def test_discarded_correction_is_declared(bases: Bases, agent_config: AgentConfig) -> None:
     units = {**LARGEST_DROP, "metrics": ["unidades"], "sort": {**LARGEST_DROP["sort"], "metric": "unidades"}}
     deps = make_deps(
-        bases, agent_config,
+        bases, max_three(agent_config),
         plan_message(metric(LARGEST_DROP, "a"), metric(units, "b"), metric(ZETA, "c")),
         plan_message(metric(BRIO_2026, "d"), metric({**BRIO_2026, "period": "2026-T1"}, "e")),  # una de más
         SYNTHESIS,
@@ -514,3 +519,71 @@ def test_programming_error_is_internal_error(bases: Bases, agent_config: AgentCo
 
     assert (response.status, response.error_code) == ("error", "internal_error")
     assert "campo" not in (response.message or "")
+
+
+# --- Evidencias en la respuesta ----------------------------------------------------------------
+
+
+def _citable(response: Any, cited: str) -> list[Any]:
+    return [item for item in response.evidence if cited in item.citable_ids]
+
+
+def test_evidence_of_a_metric_query(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(metric(LARGEST_DROP)), SYNTHESIS)
+
+    response = run_graph(QUESTION, deps)
+
+    [item] = _citable(response, LARGEST_DROP_ID)
+    assert (item.id, item.kind, item.tool) == (LARGEST_DROP_ID, "metricas", "consultar_metrica")
+    first = item.result["rows"][0]
+    assert first["group"] == {"region": "Sur"} and first["metrics"]["venta_neta"]["var_pct"] == "-30.27"
+    cited = {ident for claims in (response.facts, response.hypotheses, response.contradictions)
+             for claim in claims for ident in claim.evidence}
+    assert cited and all(_citable(response, ident) for ident in cited)
+
+
+def test_evidence_cited_by_primary_id_and_search(bases: Bases, agent_config: AgentConfig) -> None:
+    calls = [metric(LARGEST_DROP), search(REPORT_QUERY, "d1")]
+    deps = make_deps(bases, agent_config, plan_message(*calls), _report_synthesis("REP-01"))
+
+    response = run_graph("¿Es consistente el reporte comercial con los datos?", deps)
+
+    assert response.status == "ok"
+    [fragment] = _citable(response, "REP-01")
+    assert fragment.kind == "documento" and "05_Reporte_Comercial:004" in fragment.citable_ids
+    assert (fragment.doc_id, fragment.chunk_id, fragment.page) == ("05_Reporte_Comercial", "05_Reporte_Comercial:004", 1)
+    assert fragment.text and "Localización de la presión comercial" in fragment.text
+    [search_item] = [item for item in response.evidence if item.kind == "busqueda"]
+    assert search_item.query == REPORT_QUERY and "REP-01" in search_item.fragment_ids
+    assert search_item.text is None and search_item.result is None
+
+
+def test_one_id_in_two_fragments(bases: Bases, agent_config: AgentConfig) -> None:
+    hypothesis = json_message(Synthesis(hypotheses=[
+        Claim(statement="La percepción de precio podría pesar en Sur", evidence=["INV-01"]),
+    ]))
+    deps = make_deps(bases, agent_config, plan_message(search("Sensibilidad al precio en Sur", "d1")), hypothesis)
+
+    response = run_graph("¿Qué dice la investigación sobre el precio en Sur?", deps)
+
+    chunks = {item.chunk_id for item in _citable(response, "INV-01")}
+    assert chunks == {"03_Investigacion_Consumidor:003", "03_Investigacion_Consumidor:018"}
+
+
+def test_error_response_keeps_evidence_after_synthesis_failure(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(metric(LARGEST_DROP)), GoogleRateLimitError("429"))
+
+    response = run_graph(QUESTION, deps)
+
+    assert (response.status, response.facts) == ("error", [])
+    assert [item.id for item in response.evidence] == [LARGEST_DROP_ID]
+
+
+def test_error_response_keeps_evidence_when_the_correction_fails(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(metric(LARGEST_DROP, "a"), metric(ZETA, "b")),
+                     GoogleRateLimitError("429"))
+
+    response = run_graph(QUESTION, deps)
+
+    assert (response.status, response.error_code) == ("error", "quota_exhausted")
+    assert LARGEST_DROP_ID in {item.id for item in response.evidence}

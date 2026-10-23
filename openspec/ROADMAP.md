@@ -7,7 +7,9 @@ Estados: `pendiente` → `propuesto` → `aprobado` → `implementado` → `veri
 
 ## Siguiente paso
 
-Change 6 `add-contrast-and-causal-analysis` (`report-contrast`, `causal-assessment`): pendiente de proponer con `/opsx:propose`. El change 5 `add-query-agent` quedó archivado el 2026-10-22; las specs `llm-provider` y `query-agent` son nuevas y `project-layout` se actualizó ("Pruebas con LLM separadas").
+Change 6 `add-contrast-and-causal-analysis` (`report-contrast`, `causal-assessment`): pendiente de proponer con `/opsx:propose`. Debe resolver la variación de las respuestas a preguntas amplias, los timeouts que quedan y el argumento de datos en la evaluación causal. Antes de las specs, el responsable decide: integración como herramientas del plan, extracción de afirmaciones con el LLM y validación en código, umbrales del veredicto, criterios causales y comprobar que "información insuficiente" no declare ausentes datos que el catálogo sí tiene.
+
+El change 8 `add-api-and-ui` quedó archivado el 2026-10-22: specs nuevas `query-api` y `analyst-ui`; `query-agent`, `llm-provider` y `project-layout` ampliadas. La aplicación se usa con `make up` (interfaz en `http://localhost:8501`).
 
 ## Pendientes para retomar
 
@@ -43,5 +45,5 @@ Change 6 `add-contrast-and-causal-analysis` (`report-contrast`, `causal-assessme
 | 5 | `add-query-agent` | `llm-provider`, `query-agent` (modifica `project-layout`) | 3, 4 | Indirecto | archivado (2026-10-22) |
 | 6 | `add-contrast-and-causal-analysis` | `report-contrast`, `causal-assessment` | 5 | Indirecto | pendiente |
 | 7 | `add-safe-sql-tool` | `safe-sql` | 3, 5 | Indirecto | pendiente |
-| 8 | `add-api-and-ui` | `query-api`, `analyst-ui` | 5 | No | pendiente |
+| 8 | `add-api-and-ui` | `query-api`, `analyst-ui` (modifica `query-agent`, `llm-provider` y `project-layout`) | 5 | No | archivado (2026-10-22) |
 | 9 | `add-evaluation-suite` | `evaluation` | 5, 6, 7 | Sí | pendiente |

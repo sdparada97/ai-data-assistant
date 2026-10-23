@@ -66,8 +66,12 @@ class LLMClient:
         unavailable_retries: int,
         backoff_s: float,
         secrets: Sequence[str] = (),
+        plan_reasoning: str | None = None,
+        synthesis_reasoning: str | None = None,
     ) -> None:
         self.chat_model = chat_model
+        self.plan_reasoning = plan_reasoning  # razonamiento con herramientas (planificación y corrección)
+        self.synthesis_reasoning = synthesis_reasoning  # razonamiento de la salida estructurada (síntesis)
         self.model_name = model_name
         self._retries = unavailable_retries
         self._backoff_s = backoff_s
@@ -75,12 +79,19 @@ class LLMClient:
         self.calls = 0
         self.attempts = 0
 
+    def _with_reasoning(self, reasoning: str | None) -> BaseChatModel:
+        """Copia del modelo con el nivel de razonamiento del paso; el modelo compartido no cambia."""
+        if reasoning is None:
+            return self.chat_model
+        return self.chat_model.model_copy(update={"reasoning_effort": reasoning})
+
     def with_tools(self, tools: Sequence[Any]) -> Runnable:
-        return self.chat_model.bind_tools(list(tools))
+        return self._with_reasoning(self.plan_reasoning).bind_tools(list(tools))
 
     def structured(self, schema: type) -> Runnable:
         """Salida estructurada; devuelve `{raw, parsed, parsing_error}` en lugar de lanzar al no poder interpretar."""
-        return self.chat_model.with_structured_output(schema, method="json_schema", include_raw=True)
+        model = self._with_reasoning(self.synthesis_reasoning)
+        return model.with_structured_output(schema, method="json_schema", include_raw=True)
 
     def redact(self, text: str) -> str:
         for secret in self._secrets:
@@ -144,4 +155,6 @@ def build_llm_client(settings: LLMSettings, config: AgentConfig, chat_model: Bas
         unavailable_retries=gemini.unavailable_retries,
         backoff_s=gemini.backoff_s,
         secrets=(settings.api_key.get_secret_value(),),
+        plan_reasoning=gemini.plan_reasoning_for(settings.model),
+        synthesis_reasoning=gemini.synthesis_reasoning_for(settings.model),
     )

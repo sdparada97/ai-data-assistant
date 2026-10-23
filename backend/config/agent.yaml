@@ -7,17 +7,23 @@ provider:
   gemini:
     requests_per_minute: 8        # capa gratuita: cuota baja; se va por debajo del límite
     burst: 1
-    timeout_s: 120                # tiempo máximo por llamada
+    timeout_s: 240                # tiempo máximo por llamada (la síntesis con mucha evidencia pasaba de 120 s)
     max_output_tokens: 8192       # en Gemini 3 incluye los tokens de razonamiento
     unavailable_retries: 2        # reintentos ante 500/503/504 (nunca ante 429 de cuota)
     backoff_s: 2.0                # espera inicial entre reintentos (exponencial con jitter)
     temperature_by_prefix:
       gemini-3: 1.0               # recomendación de Google para Gemini 3
     default_temperature: 0.0
+    # Razonamiento (minimal, low, medium, high) por prefijo del modelo y por paso; sin prefijo, el del
+    # modelo. Sin límite, Gemini 3 puede pasar de los 4 minutos en preguntas amplias.
+    plan_reasoning_by_prefix:        # planificación y corrección (eligen las consultas)
+      gemini-3: low
+    synthesis_reasoning_by_prefix:   # síntesis (redacta con la evidencia ya reunida)
+      gemini-3: low
 
 limits:
   max_question_chars: 1000
-  max_calls_per_tool: 3           # consultas por herramienta y pregunta (plan + corrección)
+  max_calls_per_tool: 5           # consultas correctas por herramienta y pregunta (plan + corrección)
   max_quality_issues: 10          # incidencias de calidad que se resumen para el LLM
   docs_top_k: 5                   # fragmentos por búsqueda si el LLM no indica otro número
 

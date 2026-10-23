@@ -42,12 +42,16 @@ def build_deps(environ: Mapping[str, str] | None = None, base_dir: Path | None =
     )
 
 
+def error_response(question: str, code: str, message: str) -> AgentResponse:
+    """Respuesta `error` sin ejecutar el agente (configuración inválida o fallo fuera del grafo)."""
+    return AgentResponse(status="error", error_code=code, message=message, trace=Trace(question=question))
+
+
 def answer_question(question: str, deps: AgentDeps | None = None) -> AgentResponse:
     """Responde la pregunta. Los fallos de configuración, datos y proveedor vuelven como respuesta `error`."""
     if deps is None:
         try:
             deps = build_deps()
         except CONFIGURATION_ERRORS as error:
-            return AgentResponse(status="error", error_code=CONFIGURATION_ERROR, message=str(error),
-                                 trace=Trace(question=question))
+            return error_response(question, CONFIGURATION_ERROR, str(error))
     return run_graph(question, deps)

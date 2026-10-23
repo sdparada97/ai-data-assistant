@@ -22,11 +22,15 @@ ENV_FILE ?= .env
 ENV_LOAD = $(if $(wildcard $(ENV_FILE)),--env-file $(ENV_FILE))
 # Rutas de las pruebas llm (por defecto, las de pyproject.toml).
 LLM_TESTS ?=
+# Datos del host que make up monta en el backend (solo lectura). Las bases deben llamarse
+# analytics.duckdb y documents.duckdb, los nombres por defecto de make ingest y make ingest-docs.
+DOCKER_DATA_DIR ?= data/processed
+DOCKER_MODELS_DIR ?= $(MODELS_CACHE_DIR)
 DEFAULT_FILTER := not llm and not embeddings
 LLM_FILTER := llm
 EMBEDDINGS_FILTER := embeddings
 
-.PHONY: help test test-llm test-embeddings eval up ingest ingest-docs models ask
+.PHONY: help test test-llm test-embeddings eval up up-check ingest ingest-docs models ask
 
 help: ## Lista los objetivos disponibles
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "%-16s %s\n", $$1, $$2}'
@@ -65,5 +69,14 @@ ask: ## Responde una pregunta: make ask Q="<pregunta>" (requiere make ingest, ma
 	DOCUMENTS_DB_PATH="$(DOCUMENTS_DB_PATH)" DOCUMENTS_CONFIG_PATH="$(DOCUMENTS_CONFIG_PATH)" \
 	MODELS_CACHE_DIR="$(MODELS_CACHE_DIR)" $(UV_RUN) $(ENV_LOAD) python -m analyst_backend.agent
 
-up: ## Levanta backend y frontend con Docker Compose
+up-check: ## Comprueba las bases y el modelo que necesita make up
+	@test -f "$(DOCKER_DATA_DIR)/analytics.duckdb" || \
+		{ echo "Falta la base de ventas en $(DOCKER_DATA_DIR)/analytics.duckdb: ejecuta make ingest." >&2; exit 1; }
+	@test -f "$(DOCKER_DATA_DIR)/documents.duckdb" || \
+		{ echo "Falta la base de documentos en $(DOCKER_DATA_DIR)/documents.duckdb: ejecuta make ingest-docs." >&2; exit 1; }
+	@MODELS_CACHE_DIR="$(DOCKER_MODELS_DIR)" DOCUMENTS_CONFIG_PATH="$(DOCUMENTS_CONFIG_PATH)" \
+	$(UV_RUN) python -m analyst_backend.documents.models_cli --check
+
+up: up-check ## Levanta backend (:8000) y frontend (:8501) en 127.0.0.1 con los datos del host
+	DOCKER_DATA_DIR="$(abspath $(DOCKER_DATA_DIR))" DOCKER_MODELS_DIR="$(abspath $(DOCKER_MODELS_DIR))" \
 	docker compose up --build

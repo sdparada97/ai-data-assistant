@@ -7,8 +7,22 @@ services:
     env_file:
       - path: .env
         required: false
+    # Rutas dentro del contenedor: prevalecen sobre las que defina .env para el host.
+    environment:
+      DUCKDB_PATH: /data/processed/analytics.duckdb
+      DOCUMENTS_DB_PATH: /data/processed/documents.duckdb
+      MODELS_CACHE_DIR: /models
+      AGENT_CONFIG_PATH: /app/config/agent.yaml
+      SEMANTIC_LAYER_PATH: /app/config/semantic_layer.yaml
+      DOCUMENTS_CONFIG_PATH: /app/config/documents.yaml
+    # Bases y modelo preparados en el host (make ingest, make models, make ingest-docs), en solo lectura.
+    # make up pasa rutas absolutas; sin make, deben ser absolutas o empezar por ./
+    volumes:
+      - ${DOCKER_DATA_DIR:-./data/processed}:/data/processed:ro
+      - ${DOCKER_MODELS_DIR:-./.cache/models}:/models:ro
+    # Solo en esta máquina: nadie más en la red puede usar la API ni la cuota del LLM.
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
 
   frontend:
     build:
@@ -18,7 +32,8 @@ services:
       # Valor fijo: un .env local no puede romper la conexión entre contenedores.
       BACKEND_URL: http://backend:8000
       APP_TITLE: ${APP_TITLE:-}
+      BACKEND_TIMEOUT_S: ${BACKEND_TIMEOUT_S:-}
     ports:
-      - "${FRONTEND_PORT:-8501}:8501"
+      - "127.0.0.1:${FRONTEND_PORT:-8501}:8501"
     depends_on:
       - backend

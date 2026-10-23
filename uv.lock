@@ -89,11 +89,15 @@ name = "analyst-frontend"
 version = "0.1.0"
 source = { editable = "frontend" }
 dependencies = [
+    { name = "httpx" },
     { name = "streamlit" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "streamlit", specifier = "==1.66.0" }]
+requires-dist = [
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "streamlit", specifier = "==1.66.0" },
+]
 
 [[package]]
 name = "annotated-doc"

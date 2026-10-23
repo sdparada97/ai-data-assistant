@@ -18,8 +18,8 @@ cp .env.example .env   # completa las variables; .env nunca se versiona
 
 ## Estructura
 
-- `backend/src/analyst_backend/`: API (FastAPI).
-- `frontend/src/analyst_frontend/`: interfaz (Streamlit).
+- `backend/src/analyst_backend/`: API (FastAPI, `POST /ask`) y agente.
+- `frontend/src/analyst_frontend/`: interfaz del analista (Streamlit).
 - `backend/tests/`, `frontend/tests/`, `tests/`: pruebas de cada aplicación y del repositorio.
 
 ## Comandos
@@ -35,7 +35,8 @@ cp .env.example .env   # completa las variables; .env nunca se versiona
 | `make ingest-docs` | Convierte a Markdown y fragmenta los documentos de `data/raw/` y publica `data/processed/documents.duckdb` con sus embeddings. Rutas configurables con `DOCUMENTS_DIR`, `DOCUMENTS_DB_PATH`, `DOCUMENTS_CONFIG_PATH` y `MODELS_CACHE_DIR`. |
 | `make ask Q="<pregunta>"` | Responde una pregunta con el agente e imprime hechos, hipótesis, contradicciones e información insuficiente con sus evidencias, los avisos y un resumen de la traza. Requiere `make ingest`, `make ingest-docs` y Gemini configurado (ver abajo). Carga `ENV_FILE` (por defecto `.env`) solo si existe. |
 | `make eval` | Evaluación con el golden set (pendiente del change `add-evaluation-suite`). |
-| `make up` | Construye y levanta backend (`:8000`) y frontend (`:8501`) con Docker Compose. |
+| `make up` | Comprueba las bases y el modelo (`make up-check`) y levanta backend (`:8000`) y frontend (`:8501`) con Docker Compose, solo en `127.0.0.1`. Ver "Usar la aplicación". |
+| `make up-check` | Solo la comprobación previa de `make up`: si falta algo, nombra `make ingest`, `make ingest-docs` o `make models`. |
 
 Los puertos publicados se cambian con `BACKEND_PORT` y `FRONTEND_PORT`.
 
@@ -49,7 +50,7 @@ GEMINI_MODEL=<modelo, por ejemplo uno de la familia Gemini Flash>
 GEMINI_API_KEY=<tu clave de Google AI Studio>
 ```
 
-Los límites del proveedor (peticiones por minuto, tiempo máximo, reintentos ante 5xx), los topes de consultas y el léxico de la verificación están en `backend/config/agent.yaml` (`AGENT_CONFIG_PATH`). Con la cuota gratuita, cada pregunta hace normalmente 2 llamadas al LLM (plan y síntesis) y como mucho 4.
+Los límites del proveedor (peticiones por minuto, tiempo máximo, reintentos ante 5xx), el nivel de razonamiento de la planificación y de la síntesis (`plan_reasoning_by_prefix`, `synthesis_reasoning_by_prefix`; `low` en Gemini 3 para que las respuestas no pasen de minutos), los topes de consultas y el léxico de la verificación están en `backend/config/agent.yaml` (`AGENT_CONFIG_PATH`). Con la cuota gratuita, cada pregunta hace normalmente 2 llamadas al LLM (plan y síntesis) y como mucho 4.
 
 ```bash
 make ingest && make models && make ingest-docs   # una vez
@@ -57,6 +58,31 @@ make ask Q="¿Cuál fue la región con mayor caída porcentual en ventas netas d
 ```
 
 Termina con código 1 si falta configuración (nombra la variable) y 2 si la respuesta tiene estado `error` (por ejemplo, `quota_exhausted`).
+
+## Usar la aplicación
+
+La interfaz del analista está en `http://localhost:8501`: se escribe la pregunta y la respuesta llega separada en hechos, hipótesis, contradicciones e información insuficiente. Cada cita se despliega para ver su evidencia (la tabla de la consulta o el texto del fragmento con su documento y página). También muestra los avisos y la traza. El historial es solo de la sesión del navegador: cada pregunta se responde de forma independiente.
+
+```bash
+make ingest && make models && make ingest-docs   # una vez, en el host
+make up                                          # Gemini configurado en .env
+```
+
+- **Datos del host:** compose monta `data/processed` y `.cache/models` en **solo lectura**. Las bases deben llamarse `analytics.duckdb` y `documents.duckdb` (los nombres por defecto). Otros directorios: `make up DOCKER_DATA_DIR=... DOCKER_MODELS_DIR=...`. Son variables de `make`; con `docker compose up` directamente deben ser rutas absolutas o empezar por `./`. El contenedor lee los archivos con el uid 1000: deben ser legibles para ese usuario.
+- **Datos cargados después:** si ejecutas `make ingest` con la aplicación en marcha, la siguiente pregunta ya los usa.
+- **Configuración:** solo el backend recibe `.env`. Tras cambiar `.env`, vuelve a ejecutar `make up` para recrear el contenedor.
+- **Puertos:** se publican solo en `127.0.0.1`, para que nadie más en la red use la API ni la cuota de Gemini. Se cambian con `BACKEND_PORT` y `FRONTEND_PORT`.
+- **Tiempo de espera:** la interfaz espera la respuesta `BACKEND_TIMEOUT_S` segundos (300 por defecto). Si se agota, la pregunta puede seguir en curso en la API.
+- **Una pregunta a la vez:** la API responde de una en una; las demás esperan su turno.
+
+La API también se puede usar directamente:
+
+```bash
+curl -s -X POST http://localhost:8000/ask -H 'Content-Type: application/json' \
+  -d '{"question": "¿Cuál fue la región con mayor caída porcentual en ventas netas de Brío entre T1 y T2 de 2026?"}'
+```
+
+Devuelve la respuesta del agente en JSON (`status`, `error_code`, `message`, `facts`, `hypotheses`, `contradictions`, `insufficient`, `warnings`, `evidence` y `trace`). El estado HTTP sigue al resultado: 200 si hay respuesta; 422 para una pregunta vacía o una petición inválida (solo admite `question`); 429 si se agotó la cuota; 503 si faltan datos o configuración; 502 o 504 ante fallos del proveedor; 500 ante un error interno.
 
 ## Consultar la base desde Python
 

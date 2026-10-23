@@ -54,6 +54,14 @@ class Evidence:
     numbers: tuple[Decimal, ...] = ()
     text: str = ""
     extra: str = ""
+    # Origen estructurado (para la respuesta): herramienta; documento, fragmento y página; búsqueda.
+    tool: str = ""
+    doc_id: str | None = None
+    chunk_id: str | None = None
+    page: int | None = None
+    query: str | None = None
+    fragment_ids: tuple[str, ...] = ()
+    title: str = ""  # título legible para la interfaz, generado en código
 
 
 class ToolRun(BaseModel):
@@ -79,6 +87,23 @@ class Trace(BaseModel):
     duration_ms: int = 0
 
 
+class EvidenceView(BaseModel):
+    """Una evidencia de la ejecución tal como la recibe quien lee la respuesta (la interfaz)."""
+
+    id: str
+    kind: Literal["metricas", "calidad", "documento", "busqueda"]
+    title: str = Field(description="Título legible, generado en código a partir de la consulta o del documento")
+    citable_ids: list[str] = Field(description="Ids por los que una afirmación puede citarla")
+    tool: str
+    doc_id: str | None = None
+    chunk_id: str | None = None
+    page: int | None = None
+    text: str | None = Field(default=None, description="Texto literal del fragmento")
+    result: dict[str, Any] | None = Field(default=None, description="Resultado completo de métricas o calidad")
+    query: str | None = Field(default=None, description="Consulta de la búsqueda")
+    fragment_ids: list[str] = Field(default_factory=list, description="Fragmentos de la búsqueda")
+
+
 class AgentResponse(BaseModel):
     status: Status
     error_code: str | None = None
@@ -88,6 +113,7 @@ class AgentResponse(BaseModel):
     contradictions: list[Claim] = Field(default_factory=list)
     insufficient: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    evidence: list[EvidenceView] = Field(default_factory=list)
     trace: Trace
 
 

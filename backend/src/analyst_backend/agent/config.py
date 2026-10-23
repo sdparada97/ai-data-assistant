@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat, PositiveInt, ValidationError, field_validator
+
+ReasoningEffort = Literal["minimal", "low", "medium", "high"]
 
 
 class AgentConfigError(RuntimeError):
@@ -25,11 +28,26 @@ class GeminiConfig(_Strict):
     backoff_s: NonNegativeFloat
     temperature_by_prefix: dict[str, float] = Field(default_factory=dict)
     default_temperature: float
+    plan_reasoning_by_prefix: dict[str, ReasoningEffort] = Field(default_factory=dict)
+    synthesis_reasoning_by_prefix: dict[str, ReasoningEffort] = Field(default_factory=dict)
 
     def temperature_for(self, model: str) -> float:
         """Temperatura del prefijo más largo que coincide con el modelo, o la de por defecto."""
         matches = [prefix for prefix in self.temperature_by_prefix if model.startswith(prefix)]
         return self.temperature_by_prefix[max(matches, key=len)] if matches else self.default_temperature
+
+    @staticmethod
+    def _longest_prefix(values: dict[str, ReasoningEffort], model: str) -> ReasoningEffort | None:
+        matches = [prefix for prefix in values if model.startswith(prefix)]
+        return values[max(matches, key=len)] if matches else None
+
+    def plan_reasoning_for(self, model: str) -> ReasoningEffort | None:
+        """Razonamiento de la planificación y la corrección; `None` deja el del modelo."""
+        return self._longest_prefix(self.plan_reasoning_by_prefix, model)
+
+    def synthesis_reasoning_for(self, model: str) -> ReasoningEffort | None:
+        """Razonamiento de la síntesis del prefijo más largo que coincide; `None` deja el del modelo."""
+        return self._longest_prefix(self.synthesis_reasoning_by_prefix, model)
 
 
 class ProviderConfig(_Strict):

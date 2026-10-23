@@ -16,7 +16,7 @@ from langchain_google_genai.chat_models import GoogleAPIError, GoogleAuthenticat
 from pydantic import SecretStr
 
 from analyst_backend.agent.config import AgentConfig, load_agent_config
-from analyst_backend.agent.llm import LLMClient, ProviderError, build_chat_model, make_rate_limiter
+from analyst_backend.agent.llm import LLMClient, ProviderError, build_chat_model, build_llm_client, make_rate_limiter
 from analyst_backend.settings import LLMSettings, SettingsError, load_llm_settings
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -174,3 +174,55 @@ def test_programming_errors_are_not_provider_errors() -> None:
         _client().invoke(_failing(iter([KeyError("campo")]), calls), ["hola"])
 
     assert len(calls) == 1
+
+
+# --- Razonamiento limitado en la síntesis ---------------------------------------------------------
+
+
+def _chat_models(runnable: Any) -> list[Any]:
+    """Modelos de Gemini dentro de una cadena de LangChain (sin llamar a la API)."""
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
+    found = []
+    for node in runnable.get_graph().nodes.values():
+        data = node.data
+        bound = getattr(data, "bound", data)
+        if isinstance(bound, ChatGoogleGenerativeAI):
+            found.append(bound)
+    return found
+
+
+def test_reasoning_per_step_from_configuration(config: AgentConfig) -> None:
+    from analyst_backend.agent.models import Synthesis
+
+    client = build_llm_client(LLMSettings("gemini", "gemini-3-flash", SecretStr("k")), config)
+
+    [synthesis_model] = _chat_models(client.structured(Synthesis))
+    [plan_model] = _chat_models(client.with_tools([]))
+
+    assert synthesis_model.reasoning_effort == config.provider.gemini.synthesis_reasoning_for("gemini-3-flash") == "low"
+    assert plan_model.reasoning_effort == config.provider.gemini.plan_reasoning_for("gemini-3-flash") == "low"
+    assert client.chat_model.reasoning_effort is None  # el modelo compartido no cambia
+
+
+def test_synthesis_reasoning_without_plan_reasoning(config: AgentConfig) -> None:
+    from analyst_backend.agent.models import Synthesis
+
+    gemini = config.provider.gemini.model_copy(update={"plan_reasoning_by_prefix": {}})
+    only_synthesis = config.model_copy(update={"provider": config.provider.model_copy(update={"gemini": gemini})})
+    client = build_llm_client(LLMSettings("gemini", "gemini-3-flash", SecretStr("k")), only_synthesis)
+
+    [synthesis_model] = _chat_models(client.structured(Synthesis))
+    [plan_model] = _chat_models(client.with_tools([]))
+
+    assert (synthesis_model.reasoning_effort, plan_model.reasoning_effort) == ("low", None)
+
+
+def test_no_synthesis_reasoning_for_other_models(config: AgentConfig) -> None:
+    from analyst_backend.agent.models import Synthesis
+
+    client = build_llm_client(LLMSettings("gemini", "gemini-2.5-flash", SecretStr("k")), config)
+
+    [synthesis_model] = _chat_models(client.structured(Synthesis))
+    [plan_model] = _chat_models(client.with_tools([]))
+    assert (synthesis_model.reasoning_effort, plan_model.reasoning_effort) == (None, None)

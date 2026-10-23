@@ -22,6 +22,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:3.14-slim
 RUN useradd --create-home --uid 1000 app
 COPY --from=builder /app/.venv /app/.venv
+# Configuración del agente, la capa semántica y los documentos (rutas fijadas en docker-compose.yml).
+COPY backend/config /app/config
 ENV PATH="/app/.venv/bin:$PATH"
 USER app
 WORKDIR /home/app

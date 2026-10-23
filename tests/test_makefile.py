@@ -118,3 +118,38 @@ def test_make_eval_fails_explicitly() -> None:
 
     assert result.returncode != 0
     assert "add-evaluation-suite" in result.stdout + result.stderr
+
+
+# --- Comprobación antes de arrancar ------------------------------------------------------------
+
+
+def _up_check(data_dir: Path, models_dir: Path) -> subprocess.CompletedProcess[str]:
+    return _make("up-check", f"DOCKER_DATA_DIR={data_dir}", f"DOCKER_MODELS_DIR={models_dir}")
+
+
+def test_up_check_without_sales_database(tmp_path: Path) -> None:
+    result = _up_check(tmp_path, tmp_path)
+
+    assert result.returncode != 0
+    assert "make ingest." in result.stdout + result.stderr
+
+
+def test_up_check_without_documents_database(tmp_path: Path) -> None:
+    (tmp_path / "analytics.duckdb").touch()
+
+    result = _up_check(tmp_path, tmp_path)
+
+    assert result.returncode != 0
+    assert "make ingest-docs" in result.stdout + result.stderr
+
+
+def test_up_check_without_model(tmp_path: Path) -> None:
+    (tmp_path / "analytics.duckdb").touch()
+    (tmp_path / "documents.duckdb").touch()
+    models = tmp_path / "modelos"
+    models.mkdir()
+
+    result = _up_check(tmp_path, models)
+
+    assert result.returncode != 0
+    assert "make models" in result.stdout + result.stderr

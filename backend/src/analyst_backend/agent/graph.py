@@ -38,7 +38,7 @@ from analyst_backend.agent.prompts import (
     synthesis_system_prompt,
 )
 from analyst_backend.agent.tool_errors import DISCARDED_PREFIX, ERROR_PREFIX, format_tool_error
-from analyst_backend.agent.evidence import evidence_items, index, metric_has_values
+from analyst_backend.agent.evidence import evidence_items, evidence_views, index, metric_has_values
 from analyst_backend.agent.tools import (
     DOCUMENTS_TOOL,
     METRIC_TOOL,
@@ -365,6 +365,7 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
             contradictions=[] if error else synthesis.contradictions,
             insufficient=[] if error else [*synthesis.insufficient, *state.get("notes", [])],
             warnings=state.get("warnings", []),
+            evidence=evidence_views(state.get("artifacts", {})),
             trace=trace,
         )
         return {"response": response}
