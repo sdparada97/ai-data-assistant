@@ -70,8 +70,71 @@ def _quality_table(result: dict[str, Any]) -> list[dict[str, Any]]:
     return [dict(issue) for issue in result.get("issues", [])]
 
 
+def _filters_text(filters: dict[str, Any]) -> str:
+    return "; ".join(f"{dimension}: {', '.join(map(str, values))}" for dimension, values in (filters or {}).items())
+
+
+def _periods_text(claim: dict[str, Any]) -> str:
+    if not claim.get("base"):
+        return ""
+    text = f"{claim['base']} frente a {claim.get('target')}"
+    return f"{text} (por defecto)" if claim.get("default_periods") else text
+
+
+def _contrast_table(result: dict[str, Any]) -> list[dict[str, Any]]:
+    """Una fila por afirmación comparada, con las cifras tal como vienen."""
+    table: list[dict[str, Any]] = []
+    for comparison in result.get("comparisons", []):
+        claim = comparison.get("claim") or {}
+        leader = comparison.get("leader")
+        table.append({
+            "afirmación": claim.get("statement"),
+            "evidencia": claim.get("evidence_ref"),
+            "filtros": _filters_text(claim.get("filters") or {}),
+            "períodos": _periods_text(claim),
+            "reportado": claim.get("reported"),
+            "real": comparison.get("actual"),
+            "diferencia": comparison.get("difference"),
+            "primero real": f"{leader} ({comparison.get('leader_value')})" if leader else None,
+            "veredicto": comparison.get("verdict"),
+        })
+    return table
+
+
+def _discarded_table(result: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {"fragmento": item.get("chunk_id"), "elemento": item.get("description"), "motivo": item.get("reason")}
+        for item in result.get("discarded", [])
+    ]
+
+
+def _criteria_table(result: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {"criterio": c.get("name"), "resultado": c.get("result"), "detalle": c.get("detail")}
+        for c in result.get("criteria", [])
+    ]
+
+
 def render_evidence(item: dict[str, Any]) -> None:
     kind = item.get("kind")
+    result = item.get("result") or {}
+    if kind == "contraste":
+        st.text(f"Documento: {result.get('doc_title') or item.get('doc_id') or ''}")
+        st.dataframe(_contrast_table(result))
+        discarded = _discarded_table(result)
+        if discarded:
+            st.text(f"Afirmaciones descartadas: {len(discarded)}")
+            st.dataframe(discarded)
+        return
+    if kind == "causalidad":
+        st.text(f"Causa: {result.get('cause') or ''} · tipo: {result.get('cause_kind') or ''}")
+        st.text(f"Veredicto: {result.get('verdict') or ''}")
+        st.dataframe(_criteria_table(result))
+        discarded = _discarded_table(result)
+        if discarded:
+            st.text(f"Observaciones descartadas: {len(discarded)}")
+            st.dataframe(discarded)
+        return
     if kind == "metricas":
         st.text(f"Consulta {item['id']} ({item.get('tool', '')})")
         st.dataframe(_metric_table(item.get("result") or {}))

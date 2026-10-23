@@ -587,3 +587,197 @@ def test_error_response_keeps_evidence_when_the_correction_fails(bases: Bases, a
 
     assert (response.status, response.error_code) == ("error", "quota_exhausted")
     assert LARGEST_DROP_ID in {item.id for item in response.evidence}
+
+
+# --- Contraste y causalidad en el grafo -------------------------------------------------------------
+
+from analyst_backend.agent.prompts import EXTRACTION_SYSTEM  # noqa: E402
+
+from .extraction_scripts import (  # noqa: E402
+    ALL_INVALID,
+    CAUSAL_ARGS,
+    MOSTLY_INVALID,
+    PROMOTIONS,
+    REPORT,
+    REPORT_TITLE,
+    promotions_extraction,
+    report_extraction,
+)
+
+CONSISTENCY = "¿Son consistentes las conclusiones del reporte comercial con los datos de ventas?"
+REPORT_SYNTHESIS = json_message(
+    Synthesis(contradictions=[Claim(statement="El reporte señala a Centro como la región con mayor caída",
+                                    evidence=["REP-01"])])
+)
+
+
+def contrast(doc_id: str = REPORT, call_id: str = "c1") -> dict[str, Any]:
+    return tool_call("contrastar_afirmaciones", {"doc_id": doc_id}, call_id)
+
+
+def extractions(deps: Any) -> int:
+    return sum(1 for messages in deps.llm.chat_model.received if messages[0].content == EXTRACTION_SYSTEM)
+
+
+def test_contrast_of_the_report_in_three_calls(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(contrast()), report_extraction(), REPORT_SYNTHESIS)
+
+    response = run_graph(CONSISTENCY, deps)
+
+    assert response.status == "ok", (response.error_code, response.message, response.trace.verification_problems)
+    assert response.trace.llm_calls == 3
+    [view] = [v for v in response.evidence if v.kind == "contraste"]
+    assert view.title == f"Contraste de {REPORT_TITLE}"
+    assert view.result is not None and view.result["doc_id"] == REPORT
+
+
+def test_two_contrasts_with_maximum_one(bases: Bases, agent_config: AgentConfig) -> None:
+    calls = [contrast(), contrast("04_Observaciones_Canales", "c2")]
+    deps = make_deps(bases, agent_config, plan_message(*calls), report_extraction(), REPORT_SYNTHESIS)
+
+    response = run_graph(CONSISTENCY, deps)
+
+    assert [run.status for run in response.trace.tool_runs] == ["ok", "descartada"]
+    assert "Se descartó 1 consulta a contrastar_afirmaciones (máximo 1)" in response.warnings
+    assert extractions(deps) == 1
+
+
+def test_unknown_document_corrected(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(contrast("06_Inexistente")), plan_message(contrast(call_id="c2")),
+                     report_extraction(), REPORT_SYNTHESIS)
+
+    response = run_graph(CONSISTENCY, deps)
+
+    assert [(run.round, run.status) for run in response.trace.tool_runs] == [(1, "error"), (2, "ok")]
+    assert extractions(deps) == 1 and response.status == "ok"
+
+
+def test_failed_extraction_and_correction(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(contrast()), "esto no es JSON",
+                     plan_message(contrast(call_id="c2")))
+
+    response = run_graph(CONSISTENCY, deps)
+
+    assert [(run.round, run.status) for run in response.trace.tool_runs] == [(1, "error"), (2, "descartada")]
+    assert extractions(deps) == 1
+    assert any("contrastar_afirmaciones" in note for note in response.insufficient)
+
+
+def test_extraction_error_without_document_text(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(contrast("04_Observaciones_Canales")),
+                     "salida libre: INSTRUCCIÓN PARA EL ASISTENTE", plan_message())
+
+    run_graph(CONSISTENCY, deps)
+
+    repair = deps.llm.chat_model.received[2]
+    [error] = _tool_contents(repair)
+    assert "contrastar_afirmaciones" in error
+    assert "INSTRUCCIÓN" not in error and "salida libre" not in error and "Sur" not in error
+
+
+def test_discarded_claims_need_no_correction(bases: Bases, agent_config: AgentConfig) -> None:
+    table = json_message(Synthesis(contradictions=[
+        Claim(statement="El reporte describe la caída de Sur como moderada", evidence=["05_Reporte_Comercial:003"])]))
+    deps = make_deps(bases, agent_config, plan_message(contrast()), json_message(MOSTLY_INVALID), table)
+
+    response = run_graph(CONSISTENCY, deps)
+
+    [run] = response.trace.tool_runs
+    assert run.status == "ok" and len(run.result["discarded"]) == 3
+    assert response.trace.repairs == 0 and response.trace.llm_calls == 3
+
+
+def test_contrast_without_valid_claims(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(contrast()), json_message(ALL_INVALID))
+
+    response = run_graph(CONSISTENCY, deps)
+
+    assert response.status == "insuficiente" and response.trace.llm_calls == 2
+
+
+def test_quota_exhausted_in_the_extraction_keeps_previous_queries(bases: Bases, agent_config: AgentConfig) -> None:
+    calls = [metric(LARGEST_DROP), contrast(), metric({**LARGEST_DROP, "metrics": ["unidades"], "sort": None}, "m3")]
+    deps = make_deps(bases, agent_config, plan_message(*calls), GoogleRateLimitError("429 RESOURCE_EXHAUSTED"))
+
+    response = run_graph(CONSISTENCY, deps)
+
+    assert (response.status, response.error_code) == ("error", "quota_exhausted")
+    assert [(run.tool, run.status) for run in response.trace.tool_runs] == [
+        ("consultar_metrica", "ok"), ("contrastar_afirmaciones", "error"), ("consultar_metrica", "descartada")]
+    assert response.trace.tool_runs[0].evidence_id == LARGEST_DROP_ID
+    assert LARGEST_DROP_ID in {view.id for view in response.evidence}
+
+
+def test_evidence_of_a_contrast(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(contrast()), report_extraction(), REPORT_SYNTHESIS)
+
+    response = run_graph(CONSISTENCY, deps)
+
+    views = {view.id: view for view in response.evidence}
+    [contrast_view] = [v for v in views.values() if v.kind == "contraste"]
+    [query_id] = {c["metric_evidence_id"] for c in contrast_view.result["comparisons"]}
+    query = views[query_id]
+    assert query.kind == "metricas" and query.result["query"]["group_by"] == ["region"]
+    assert query.result["query"]["metrics"] == ["venta_neta"]
+    assert views["REP-01"].kind == "documento" and "05_Reporte_Comercial:004" in views["REP-01"].citable_ids
+
+
+def test_internal_queries_are_not_synthesis_blocks(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message(contrast()), report_extraction(), REPORT_SYNTHESIS)
+
+    response = run_graph(CONSISTENCY, deps)
+
+    [contrast_view] = [v for v in response.evidence if v.kind == "contraste"]
+    query_id = contrast_view.result["queries"][0]["evidence_id"]
+    synthesis_prompt_text = str(deps.llm.chat_model.received[2][-1].content)
+    assert f'id="{contrast_view.id}"' in synthesis_prompt_text
+    assert f'id="{query_id}"' not in synthesis_prompt_text and 'id="REP-01"' in synthesis_prompt_text
+
+
+def test_omitted_claims_warning(bases: Bases, agent_config: AgentConfig) -> None:
+    limited = agent_config.model_copy(update={"contrast": agent_config.contrast.model_copy(update={"max_claims": 2})})
+    deps = make_deps(bases, limited, plan_message(contrast()), report_extraction(), REPORT_SYNTHESIS)
+
+    response = run_graph(CONSISTENCY, deps)
+
+    assert any("Se omitieron 4 afirmaciones" in warning for warning in response.warnings)
+
+
+def test_evidence_of_a_causal_assessment(bases: Bases, agent_config: AgentConfig) -> None:
+    synthesis = json_message(Synthesis(facts=[Claim(statement="Hay promociones observadas en Centro",
+                                                    evidence=["OC-CEN-02"])]))
+    deps = make_deps(bases, agent_config, plan_message(tool_call("evaluar_causalidad", CAUSAL_ARGS, "e1")),
+                     promotions_extraction(), synthesis)
+
+    response = run_graph("¿Las promociones de la competencia causaron la caída?", deps)
+
+    assert response.status == "ok", (response.error_code, response.message, response.trace.verification_problems)
+    [view] = [v for v in response.evidence if v.kind == "causalidad"]
+    assert view.title == f"Evaluación causal: «{PROMOTIONS}»"
+    assert view.result is not None and view.result["verdict"] == "no sustentada"
+
+
+def test_tools_offered_to_the_plan(bases: Bases, agent_config: AgentConfig) -> None:
+    deps = make_deps(bases, agent_config, plan_message())
+
+    run_graph("¿Qué tiempo hará mañana?", deps)
+
+    assert len(deps.llm.chat_model.bound_tools) == 5
+    system = str(deps.llm.chat_model.received[0][0].content)
+    assert "contrastar_afirmaciones" in system and "evaluar_causalidad" in system and "claimed_segment" in system
+    for kind, examples in agent_config.causal.cause_kind_examples.items():
+        assert f"- {kind}: por ejemplo, «{examples[0]}»" in system
+
+
+def test_causal_without_effect_is_corrected(bases: Bases, agent_config: AgentConfig) -> None:
+    same_period = {**CAUSAL_ARGS, "compare": {"base": "2026-T1", "target": "2026-T1"}}
+    synthesis = json_message(Synthesis(facts=[Claim(statement="Hay promociones observadas en Centro",
+                                                    evidence=["OC-CEN-02"])]))
+    deps = make_deps(bases, agent_config, plan_message(tool_call("evaluar_causalidad", same_period, "e1")),
+                     plan_message(tool_call("evaluar_causalidad", CAUSAL_ARGS, "e2")), promotions_extraction(),
+                     synthesis)
+
+    response = run_graph("¿Las promociones de la competencia causaron la caída?", deps)
+
+    assert [(run.round, run.status) for run in response.trace.tool_runs] == [(1, "error"), (2, "ok")]
+    assert extractions(deps) == 1 and response.status == "ok"

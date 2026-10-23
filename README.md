@@ -1,6 +1,6 @@
 # ai-data-assistant
 
-Brío Analyst: asistente de análisis comercial con IA. Arquitectura y decisiones en [docs/architecture.md](docs/architecture.md); avance en [openspec/ROADMAP.md](openspec/ROADMAP.md).
+Brío Analyst: asistente de análisis comercial con IA. Arquitectura y decisiones en [docs/architecture.md](docs/architecture.md).
 
 ## Requisitos
 
@@ -50,7 +50,13 @@ GEMINI_MODEL=<modelo, por ejemplo uno de la familia Gemini Flash>
 GEMINI_API_KEY=<tu clave de Google AI Studio>
 ```
 
-Los límites del proveedor (peticiones por minuto, tiempo máximo, reintentos ante 5xx), el nivel de razonamiento de la planificación y de la síntesis (`plan_reasoning_by_prefix`, `synthesis_reasoning_by_prefix`; `low` en Gemini 3 para que las respuestas no pasen de minutos), los topes de consultas y el léxico de la verificación están en `backend/config/agent.yaml` (`AGENT_CONFIG_PATH`). Con la cuota gratuita, cada pregunta hace normalmente 2 llamadas al LLM (plan y síntesis) y como mucho 4.
+Los límites del proveedor (peticiones por minuto, tiempo máximo, reintentos ante 5xx), el nivel de razonamiento de la planificación y de la síntesis (`plan_reasoning_by_prefix`, `synthesis_reasoning_by_prefix`; `low` en Gemini 3 para que las respuestas no pasen de minutos), los topes de consultas y el léxico de la verificación están en `backend/config/agent.yaml` (`AGENT_CONFIG_PATH`). Con la cuota gratuita, una pregunta de cifras hace normalmente 2 llamadas al LLM (plan y síntesis); una de contraste o de causalidad, 3 (además, la extracción dentro de la herramienta); como mucho 6.
+
+Preguntas guía del equipo de ventas (ejemplos, no una lista cerrada):
+
+- ¿Cuál fue la región con mayor caída porcentual en ventas netas de Brío entre T1 y T2 de 2026?
+- ¿Son consistentes las principales conclusiones del reporte comercial con los datos de ventas? (contrasta cada afirmación del reporte con los datos y da un veredicto por afirmación)
+- ¿Podemos afirmar que las promociones de la competencia causaron la caída de ventas? (evalúa la afirmación con cinco criterios y da un veredicto: contradicha, no sustentada o compatible como hipótesis; nunca la da por demostrada)
 
 ```bash
 make ingest && make models && make ingest-docs   # una vez
@@ -61,7 +67,7 @@ Termina con código 1 si falta configuración (nombra la variable) y 2 si la res
 
 ## Usar la aplicación
 
-La interfaz del analista está en `http://localhost:8501`: se escribe la pregunta y la respuesta llega separada en hechos, hipótesis, contradicciones e información insuficiente. Cada cita se despliega para ver su evidencia (la tabla de la consulta o el texto del fragmento con su documento y página). También muestra los avisos y la traza. El historial es solo de la sesión del navegador: cada pregunta se responde de forma independiente.
+La interfaz del analista está en `http://localhost:8501`: se escribe la pregunta y la respuesta llega separada en hechos, hipótesis, contradicciones e información insuficiente. Cada cita se despliega para ver su evidencia (la tabla de la consulta, el texto del fragmento con su documento y página, la tabla de afirmaciones de un contraste con las descartadas aparte, o los criterios y el veredicto de una evaluación causal). También muestra los avisos y la traza. El historial es solo de la sesión del navegador: cada pregunta se responde de forma independiente.
 
 ```bash
 make ingest && make models && make ingest-docs   # una vez, en el host

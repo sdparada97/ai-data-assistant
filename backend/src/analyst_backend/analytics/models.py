@@ -166,3 +166,119 @@ class QualityResult(_Strict):
     issues: list[QualityNote]
     review_rows: list[dict[str, Any]]
     ingestion: IngestionCounts
+
+
+# --- Contraste de afirmaciones y evaluación causal (change add-contrast-and-causal-analysis) ----
+
+ClaimKind = Literal["variacion", "ranking", "direccion", "cualitativa"]
+ClaimDirection = Literal["mayor_caida", "mayor_crecimiento", "contraccion", "crecimiento"]
+ClaimVerdict = Literal["coincide", "aproximado", "no coincide", "verdadera", "falsa", "no verificable con los datos"]
+CauseKind = Literal["competencia", "disponibilidad", "metrica_propia"]
+CauseDirection = Literal["sube", "baja"]
+ObservationKind = Literal["segmento", "atribucion", "limitacion"]
+CriterionName = Literal["localizacion", "comparacion", "temporalidad", "alternativas", "diseno"]
+CausalVerdict = Literal["contradicha", "no sustentada", "compatible (hipótesis)"]
+
+
+class SourceFragment(_Strict):
+    """Fragmento de documento en que se apoya una afirmación u observación validada (evidencia citable)."""
+
+    chunk_id: str
+    doc_id: str
+    title: str
+    section: str | None
+    page: int | None
+    primary_evidence_id: str | None
+    evidence_ids: list[str]
+    text: str
+
+
+class ValidatedClaim(_Strict):
+    """Afirmación de un documento ya validada en código: todos sus campos están en el catálogo y en el texto."""
+
+    kind: ClaimKind
+    chunk_id: str
+    evidence_ref: str = Field(description="ID de evidencia tomado del fragmento (nunca del LLM)")
+    statement: str = Field(description="Enunciado generado en código con los campos validados")
+    metric: str | None = None
+    dimension: str | None = None
+    value: str | None = Field(default=None, description="Valor de la dimensión, del catálogo")
+    filters: dict[str, list[str]] = Field(default_factory=dict)
+    base: str | None = None
+    target: str | None = None
+    default_periods: bool = False
+    reported: Decimal | None = None
+    reported_decimals: int = 0
+    direction: ClaimDirection | None = None
+
+
+class ClaimComparison(_Strict):
+    claim: ValidatedClaim
+    verdict: ClaimVerdict
+    actual: Decimal | None = Field(default=None, description="Variación real (pp), con 2 decimales")
+    difference: Decimal | None = Field(default=None, description="Reportado − real (pp)")
+    leader: str | None = Field(default=None, description="Ranking: primer valor real")
+    leader_value: Decimal | None = None
+    metric_evidence_id: str | None = None
+
+
+class DiscardedItem(_Strict):
+    """Elemento extraído que no pasó la validación. `description` la genera el código, no el LLM."""
+
+    chunk_id: str | None
+    description: str
+    reason: str
+
+
+class ContrastResult(_Strict):
+    evidence_id: str
+    doc_id: str
+    doc_title: str
+    document_sha256: str
+    comparisons: list[ClaimComparison]
+    discarded: list[DiscardedItem] = Field(default_factory=list)
+    omitted: int = 0
+    warnings: list[str] = Field(default_factory=list)
+    queries: list[MetricResult] = Field(default_factory=list)
+    fragments: list[SourceFragment] = Field(default_factory=list, description="Fragmentos de las afirmaciones validadas")
+
+
+class ValidatedObservation(_Strict):
+    """Observación de la causa en un documento, validada: cita literal, segmento y fecha en el fragmento."""
+
+    kind: ObservationKind
+    chunk_id: str
+    evidence_ref: str
+    quote: str
+    dimension: str | None = None
+    value: str | None = None
+    date: str | None = None
+    declares_design: bool = False
+
+
+class CriterionResult(_Strict):
+    name: CriterionName
+    result: str
+    detail: str = Field(description="Explicación generada en código con los valores")
+    values: dict[str, Decimal | None] = Field(default_factory=dict, description="Cifras citables del criterio")
+    supports: list[str] = Field(default_factory=list, description="evidence_id de consultas o IDs de fragmentos")
+
+
+class CausalResult(_Strict):
+    evidence_id: str
+    cause: str
+    cause_kind: CauseKind
+    metric: str
+    filters: dict[str, list[str]]
+    compare: Comparison
+    locate_by: str
+    cause_metric: str | None = None
+    cause_direction: CauseDirection | None = None
+    claimed_segment: str | None = None
+    criteria: list[CriterionResult]
+    verdict: CausalVerdict
+    observations: list[ValidatedObservation] = Field(default_factory=list)
+    discarded: list[DiscardedItem] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    queries: list[MetricResult] = Field(default_factory=list)
+    fragments: list[SourceFragment] = Field(default_factory=list, description="Fragmentos de las observaciones validadas")

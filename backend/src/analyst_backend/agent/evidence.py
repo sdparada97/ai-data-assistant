@@ -4,6 +4,9 @@
   del resultado (sin identificadores ni SQL).
 - Documentos: una evidencia por fragmento, citable por su `chunk_id`, su ID principal o
   cualquier ID que contenga, con el texto literal; y otra por la búsqueda.
+- Contraste y causalidad: una evidencia con cifras explícitas (no todas las del resultado), más
+  sus consultas internas (evidencias `metricas` que no van como bloques a la síntesis) y los
+  fragmentos de sus afirmaciones u observaciones validadas (evidencias `documento`).
 
 Cada evidencia lleva un título legible, generado en código a partir de la consulta o del
 documento (sin el LLM y sin traducciones escritas aquí).
@@ -11,6 +14,7 @@ documento (sin el LLM y sin traducciones escritas aquí).
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable, Mapping
 from decimal import Decimal
 from typing import Any
@@ -18,9 +22,18 @@ from typing import Any
 from pydantic import BaseModel
 
 from analyst_backend.agent.models import Evidence, EvidenceView
-from analyst_backend.agent.tools import DOCUMENTS_TOOL, METRIC_TOOL, QUALITY_TOOL
-from analyst_backend.analytics.models import MetricResult, QualityResult
+from analyst_backend.agent.tools import (
+    CAUSAL_TOOL,
+    CONTRAST_TOOL,
+    DOCUMENTS_TOOL,
+    METRIC_TOOL,
+    QUALITY_TOOL,
+    metric_summary,
+)
+from analyst_backend.analytics.models import CausalResult, ContrastResult, MetricResult, QualityResult, SourceFragment
 from analyst_backend.documents.models import DocumentResult
+
+Artifact = MetricResult | QualityResult | DocumentResult | ContrastResult | CausalResult
 
 # Campos de los resultados que no son cifras de negocio (no cuentan como evidencia numérica).
 _NON_FIGURE_FIELDS = frozenset(
@@ -106,11 +119,68 @@ def search_title(query: str) -> str:
     return f"Búsqueda en documentos: «{query}»"
 
 
-def evidence_items(artifact: MetricResult | QualityResult | DocumentResult, summary: str = "") -> list[Evidence]:
-    """Evidencias de un resultado. `summary` es el resumen que recibió el LLM (métricas y calidad)."""
+def contrast_title(result: ContrastResult) -> str:
+    return f"Contraste de {result.doc_title}"
+
+
+def causal_title(result: CausalResult) -> str:
+    return f"Evaluación causal: «{result.cause}»"
+
+
+def contrast_figures(result: ContrastResult) -> list[Decimal]:
+    """Por afirmación comparada: reportado, real y diferencia; en un ranking, el real del afirmado y el del primero."""
+    values = [v for c in result.comparisons for v in (c.claim.reported, c.actual, c.difference, c.leader_value)]
+    return [value for value in values if value is not None]
+
+
+def causal_figures(result: CausalResult) -> list[Decimal]:
+    return [value for criterion in result.criteria for value in criterion.values.values() if value is not None]
+
+
+def _grouping(result: MetricResult) -> dict[str, tuple[str, ...]]:
+    """Métricas y agrupación de la consulta (para comprobar lo que la ejecución consultó)."""
+    return {"metrics": tuple(result.query.get("metrics") or ()), "group_by": tuple(result.query.get("group_by") or ())}
+
+
+def _fragment_evidence(fragment: SourceFragment, tool: str) -> Evidence:
+    fragment_id = fragment.primary_evidence_id or fragment.chunk_id
+    return Evidence(
+        fragment_id, "documento", fragment.text,
+        frozenset({fragment.chunk_id, fragment_id, *fragment.evidence_ids}),
+        text=fragment.text,
+        extra=f'doc="{fragment.doc_id}" fragmento="{fragment.chunk_id}" pagina="{fragment.page or ""}"',
+        tool=tool, doc_id=fragment.doc_id, chunk_id=fragment.chunk_id, page=fragment.page,
+        title=fragment_title(fragment.title, fragment.section, fragment.page),
+    )
+
+
+def _related(result: ContrastResult | CausalResult, tool: str) -> list[Evidence]:
+    """Consultas internas (citables, sin bloque en la síntesis) y fragmentos validados."""
+    queries = [
+        Evidence(query.evidence_id, "metricas", json.dumps(metric_summary(query), ensure_ascii=False, default=str),
+                 frozenset({query.evidence_id}), tuple(figures(query)), tool=tool, title=metric_title(query),
+                 internal=True, **_grouping(query))
+        for query in result.queries
+    ]
+    return [*queries, *(_fragment_evidence(fragment, tool) for fragment in result.fragments)]
+
+
+def evidence_items(artifact: Artifact, summary: str = "") -> list[Evidence]:
+    """Evidencias de un resultado. `summary` es el resumen que recibió el LLM (salvo en documentos)."""
+    if isinstance(artifact, ContrastResult):
+        main = Evidence(artifact.evidence_id, "contraste", summary, frozenset({artifact.evidence_id}),
+                        tuple(contrast_figures(artifact)), tool=CONTRAST_TOOL, doc_id=artifact.doc_id,
+                        title=contrast_title(artifact))
+        return [main, *_related(artifact, CONTRAST_TOOL)]
+    if isinstance(artifact, CausalResult):
+        main = Evidence(artifact.evidence_id, "causalidad", summary, frozenset({artifact.evidence_id}),
+                        tuple(causal_figures(artifact)), tool=CAUSAL_TOOL, title=causal_title(artifact),
+                        verdict=artifact.verdict)
+        return [main, *_related(artifact, CAUSAL_TOOL)]
     if isinstance(artifact, MetricResult):
         return [Evidence(artifact.evidence_id, "metricas", summary, frozenset({artifact.evidence_id}),
-                         tuple(figures(artifact)), tool=METRIC_TOOL, title=metric_title(artifact))]
+                         tuple(figures(artifact)), tool=METRIC_TOOL, title=metric_title(artifact),
+                         **_grouping(artifact))]
     if isinstance(artifact, QualityResult):
         return [Evidence(artifact.evidence_id, "calidad", summary, frozenset({artifact.evidence_id}),
                          tuple(figures(artifact)), tool=QUALITY_TOOL, title=quality_title(artifact))]
@@ -145,7 +215,19 @@ def index(items: Iterable[Evidence]) -> tuple[dict[str, Evidence], dict[str, lis
     return evidence, aliases
 
 
-def evidence_views(artifacts: Mapping[str, MetricResult | QualityResult | DocumentResult]) -> list[EvidenceView]:
+def _results(artifacts: Mapping[str, Artifact]) -> dict[str, BaseModel]:
+    """Resultados completos por `evidence_id`, incluidas las consultas internas de contraste y causalidad."""
+    results: dict[str, BaseModel] = {}
+    for artifact in artifacts.values():
+        if isinstance(artifact, ContrastResult | CausalResult):
+            for query in artifact.queries:
+                results.setdefault(query.evidence_id, query)
+        if not isinstance(artifact, DocumentResult):
+            results[artifact.evidence_id] = artifact
+    return results
+
+
+def evidence_views(artifacts: Mapping[str, Artifact]) -> list[EvidenceView]:
     """Evidencias de las consultas correctas para la respuesta, con el resultado completo o el texto.
 
     Se construyen desde los artifacts (no desde lo que reunió `collect`), así que también salen
@@ -155,9 +237,10 @@ def evidence_views(artifacts: Mapping[str, MetricResult | QualityResult | Docume
     for artifact in artifacts.values():
         items += evidence_items(artifact)
     evidence, _ = index(items)
+    results = _results(artifacts)
     views: list[EvidenceView] = []
     for item in evidence.values():
-        artifact = artifacts.get(item.id) if item.kind in ("metricas", "calidad") else None
+        artifact = results.get(item.id) if item.kind in ("metricas", "calidad", "contraste", "causalidad") else None
         views.append(EvidenceView(
             id=item.id, kind=item.kind, title=item.title, citable_ids=sorted(item.aliases), tool=item.tool,
             doc_id=item.doc_id, chunk_id=item.chunk_id, page=item.page,

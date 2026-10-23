@@ -36,7 +36,7 @@ Rules:
 
 ---
 ## Proyecto Brío Analyst
-Contexto: openspec/config.yaml (context) y docs/architecture.md. Avance: @openspec/ROADMAP.md
+Contexto: openspec/config.yaml (context) y docs/architecture.md. Avance: la hoja de ruta en la memoria de Claude (`roadmap-brio-analyst`).
 
 ### Reglas
 - Todo cambio funcional pasa por un change de OpenSpec aprobado (/opsx:propose → /opsx:apply → /opsx:archive).
@@ -46,7 +46,7 @@ Contexto: openspec/config.yaml (context) y docs/architecture.md. Avance: @opensp
 - Cada escenario WHEN/THEN tiene al menos un test.
 - Nunca archives un change sin mi aprobación explícita.
 - Nunca leas, imprimas ni copies el contenido de .env.
-- Al cerrar cada etapa o change, actualiza openspec/ROADMAP.md.
+- Al cerrar cada etapa o change, actualiza la hoja de ruta en la memoria de Claude (`roadmap-brio-analyst`).
 
 ### Comandos
 - OpenSpec: export PATH="$HOME/.nvm/versions/node/v22.23.3/bin:$PATH" && openspec <cmd>

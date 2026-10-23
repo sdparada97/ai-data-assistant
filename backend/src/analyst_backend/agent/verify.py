@@ -6,7 +6,11 @@
   evidencia, fragmentos y documentos (`05_Reporte_Comercial` no aporta un 5).
 - **Citas:** deben existir en esta ejecución; hechos, hipótesis y contradicciones citan al menos una.
 - **Lenguaje:** sin léxico causal en hechos, contradicciones e información insuficiente; hipótesis atenuadas.
-- **Información insuficiente** (lo que escribe el LLM): sin cifras.
+- **Veredictos causales:** una afirmación que cita una evaluación causal y nombra un veredicto debe
+  nombrar el suyo; si nombra literal "no sustentada" o "contradicha" de su evidencia, puede usar el
+  léxico causal para describir la causa evaluada.
+- **Información insuficiente** (lo que escribe el LLM): sin cifras y sin declarar ausente lo que la
+  ejecución consultó (una métrica por una dimensión), salvo las frases de excepción de `agent.yaml`.
 """
 
 from __future__ import annotations
@@ -14,7 +18,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Literal
 
@@ -37,6 +41,12 @@ _PERIODS = (
     re.compile(r"\b\d{4}-(?:0[1-9]|1[0-2])\b"),
     re.compile(r"\b[TS][1-4]\b"),
 )
+
+
+# Palabra de cada veredicto causal en el texto (la de "compatible (hipótesis)" es "compatible").
+VERDICT_TERMS = {"contradicha": "contradicha", "no sustentada": "no sustentada", "compatible (hipótesis)": "compatible"}
+EXEMPTING_VERDICTS = frozenset({"contradicha", "no sustentada"})
+_SENTENCE = re.compile(r"[.;]\s+")
 
 
 @dataclass(frozen=True)
@@ -136,6 +146,54 @@ def _pool(items: Iterable[Evidence], id_pattern: re.Pattern[str] | None, documen
     return pool
 
 
+def _verdicts_named(text: str) -> set[str]:
+    """Veredictos causales que nombra un texto ("no sustentada" no cuenta también como "sustentada")."""
+    plain = _plain(text)
+    named = set()
+    for verdict, term in VERDICT_TERMS.items():
+        if re.search(rf"(?<!\w){re.escape(_plain(term))}(?!\w)", plain):
+            named.add(verdict)
+    return named
+
+
+@dataclass(frozen=True)
+class Consulted:
+    """Lo necesario para comprobar que "información insuficiente" no declara ausente lo consultado."""
+
+    absence_markers: tuple[str, ...] = ()
+    absence_exceptions: tuple[str, ...] = ()
+    metric_terms: Mapping[str, str] = field(default_factory=dict)  # término → métrica
+    dimensions: tuple[str, ...] = ()
+
+    @classmethod
+    def build(cls, *, absence_markers: Iterable[str], absence_exceptions: Iterable[str], metrics: Iterable[str],
+              metric_synonyms: Mapping[str, str], dimensions: Iterable[str]) -> Consulted:
+        terms = {metric.replace("_", " "): metric for metric in metrics}
+        terms.update(metric_synonyms)
+        return cls(tuple(absence_markers), tuple(absence_exceptions), terms, tuple(dimensions))
+
+    def absent_but_consulted(self, text: str, evidence: Iterable[Evidence]) -> tuple[str, str] | None:
+        """(métrica, dimensión) que una frase de `text` declara ausente y la ejecución consultó."""
+        consulted = {(m, d) for item in evidence if item.kind == "metricas" for m in item.metrics for d in item.group_by}
+        if not consulted or not self.metric_terms:
+            return None
+        for sentence in _SENTENCE.split(text):
+            if _contains_phrase(sentence, self.absence_markers) is None:
+                continue
+            plain = _plain(sentence)
+            for exception in self.absence_exceptions:  # la métrica dentro de una excepción no cuenta
+                plain = re.sub(rf"(?<!\w){re.escape(_plain(exception))}(?!\w)", " ", plain)
+            metrics = {m for term, m in self.metric_terms.items()
+                       if re.search(rf"(?<!\w){re.escape(_plain(term))}(?!\w)", plain)}
+            dimensions = {d for d in self.dimensions
+                          if re.search(rf"(?<!\w)por {re.escape(_plain(d.replace('_', ' ')))}(?:e?s)?(?!\w)", plain)}
+            for metric in sorted(metrics):
+                for dimension in sorted(dimensions):
+                    if (metric, dimension) in consulted:
+                        return metric, dimension
+        return None
+
+
 def verify_synthesis(
     synthesis: Synthesis,
     evidence: Mapping[str, Evidence],
@@ -146,6 +204,7 @@ def verify_synthesis(
     hedges: Iterable[str],
     id_pattern: re.Pattern[str] | None = None,
     document_ids: Iterable[str] = (),
+    consulted: Consulted | None = None,
 ) -> list[Problem]:
     years = list(years)
     documents = tuple(document_ids)
@@ -172,7 +231,13 @@ def verify_synthesis(
         if missing:
             numbers = ", ".join(format(value, "f") for value in missing)
             problems.append(Problem(section, index, f"{label} con cifras que no están en su evidencia ({numbers}): {quoted}"))
-        if section in ("facts", "contradictions") and (phrase := _contains_phrase(claim.statement, causal)):
+        named = _verdicts_named(claim.statement)
+        cited_verdicts = {item.verdict for item in cited if item.kind == "causalidad" and item.verdict}
+        if cited_verdicts and named - cited_verdicts:
+            expected = ", ".join(f'"{verdict}"' for verdict in sorted(cited_verdicts))
+            problems.append(Problem(section, index, f"{label} con un veredicto distinto del de su evidencia ({expected}): {quoted}"))
+        exempt = bool(named & cited_verdicts & EXEMPTING_VERDICTS)
+        if section in ("facts", "contradictions") and not exempt and (phrase := _contains_phrase(claim.statement, causal)):
             problems.append(Problem(section, index, f"{label} con lenguaje causal ('{phrase}'): {quoted}"))
         if section == "hypotheses" and _contains_phrase(claim.statement, hedge_list) is None:
             problems.append(Problem(section, index, f"{label} sin atenuar (usa, por ejemplo, {examples}): {quoted}"))
@@ -185,6 +250,10 @@ def verify_synthesis(
             problems.append(Problem("insufficient", index, f"información insuficiente con cifras: «{text}»"))
         if phrase := _contains_phrase(text, causal):
             problems.append(Problem("insufficient", index, f"información insuficiente con lenguaje causal ('{phrase}'): «{text}»"))
+        if consulted is not None and (found := consulted.absent_but_consulted(text, evidence.values())):
+            metric, dimension = found
+            problems.append(Problem("insufficient", index,
+                                    f"información insuficiente declara ausente lo consultado ({metric} por {dimension}): «{text}»"))
     return problems
 
 

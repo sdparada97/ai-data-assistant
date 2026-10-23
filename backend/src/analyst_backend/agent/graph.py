@@ -39,16 +39,18 @@ from analyst_backend.agent.prompts import (
 )
 from analyst_backend.agent.tool_errors import DISCARDED_PREFIX, ERROR_PREFIX, format_tool_error
 from analyst_backend.agent.evidence import evidence_items, evidence_views, index, metric_has_values
+from analyst_backend.agent.extraction import llm_extractor
 from analyst_backend.agent.tools import (
     DOCUMENTS_TOOL,
+    EXTRACTION_TOOLS,
     METRIC_TOOL,
     QUALITY_TOOL,
     ToolContext,
     build_tools,
 )
-from analyst_backend.agent.verify import drop_failing, removed_note, verify_synthesis
+from analyst_backend.agent.verify import Consulted, drop_failing, removed_note, verify_synthesis
 from analyst_backend.analytics.database import DatabaseError
-from analyst_backend.analytics.models import MetricResult, QualityResult
+from analyst_backend.analytics.models import CausalResult, ContrastResult, MetricResult, QualityResult
 from analyst_backend.documents.models import DocumentResult
 
 RECURSION_LIMIT = 30
@@ -67,6 +69,7 @@ class AgentState(TypedDict, total=False):
     round: int
     round_messages: dict[int, list[ToolMessage]]
     runs: list[ToolRun]
+    extractions: dict[str, int]  # ejecuciones que llegaron a llamar al LLM de extracción, por herramienta
     artifacts: dict[str, Any]
     evidence: dict[str, Evidence]
     aliases: dict[str, list[str]]
@@ -144,11 +147,22 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
             embedder=deps.embedder,
             docs_top_k=cfg.limits.docs_top_k,
             max_quality_issues=cfg.limits.max_quality_issues,
+            contrast=cfg.contrast,
+            causal=cfg.causal,
+            metric_synonyms=cfg.metric_synonyms,
+            extractor=llm_extractor(deps.llm),
         )
     )
     tool_node = ToolNode(tools, handle_tool_errors=format_tool_error)
     planner = deps.llm.with_tools(tools)
-    max_per_tool = cfg.limits.max_calls_per_tool
+
+    consulted = Consulted.build(
+        absence_markers=cfg.absence_markers, absence_exceptions=cfg.absence_exceptions, metrics=deps.layer.metrics,
+        metric_synonyms=cfg.metric_synonyms, dimensions=deps.layer.dimensions,
+    )
+
+    def limit_of(tool: str) -> int:
+        return cfg.limits.max_calls_by_tool.get(tool, cfg.limits.max_calls_per_tool)
 
     def check_question(state: AgentState) -> dict[str, Any]:
         question = state["question"].strip()
@@ -165,7 +179,7 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
 
     def plan(state: AgentState) -> dict[str, Any]:
         messages: list[BaseMessage] = [
-            SystemMessage(planning_system_prompt(state["context"], cfg.assistant_name)),
+            SystemMessage(planning_system_prompt(state["context"], cfg.assistant_name, cfg.causal.cause_kind_examples)),
             HumanMessage(state["question"]),
         ]
         message: AIMessage = deps.llm.invoke(planner, messages)
@@ -174,59 +188,77 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
         return {"messages": messages, "plan_message": message, "pending": message, "round": 1, "plan_text": message.text}
 
     def execute(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
+        """Ejecuta las consultas de una en una (DuckDB: una conexión a la vez por base).
+
+        Máximos: el general cuenta las consultas correctas (corregir una que falló no consume otro
+        hueco); el propio de las herramientas con extracción cuenta las ejecuciones que llegaron a
+        llamar al LLM de extracción, correctas o fallidas. Si el proveedor falla dentro de una
+        herramienta, se conserva lo ejecutado y las llamadas siguientes quedan descartadas.
+        """
         pending = state["pending"]
         round_number = state["round"]
         runs = list(state.get("runs", []))
         artifacts = dict(state.get("artifacts", {}))
-        # El máximo cuenta las consultas correctas: corregir una que falló no consume otro hueco.
-        used = Counter(run.tool for run in runs if run.status == "ok")
-        kept: list[dict[str, Any]] = []
-        discarded: dict[str, str] = {}
+        extractions: Counter[str] = Counter(state.get("extractions", {}))
+        used = Counter(run.tool for run in runs if run.status == "ok" and run.tool not in EXTRACTION_TOOLS)
+        used.update(extractions)
         dropped: Counter[str] = Counter()
-        for call in pending.tool_calls:
-            if used[call["name"]] >= max_per_tool:
-                discarded[call["id"]] = call["name"]
-                dropped[call["name"]] += 1
-            else:
-                used[call["name"]] += 1
-                kept.append(call)
-        warnings = list(state.get("warnings", []))
-        warnings += [_discarded_warning(tool, count, max_per_tool) for tool, count in dropped.items()]
-        results: dict[str, ToolMessage] = {}
-        if kept:
-            out = tool_node.invoke(
-                {"messages": [AIMessage(content="", tool_calls=kept)]},
-                config={**config, "max_concurrency": 1},  # DuckDB: una conexión a la vez por base
-            )
-            results = {message.tool_call_id: message for message in out["messages"]}
+        failure: ProviderError | None = None
         ordered: list[ToolMessage] = []
+
+        def discard(call: dict[str, Any], reason: str) -> None:
+            message = ToolMessage(f"{DISCARDED_PREFIX}{reason}", tool_call_id=call["id"], name=call["name"],
+                                  status="error")
+            runs.append(ToolRun(tool=call["name"], args=call["args"], status="descartada", round=round_number,
+                                error=message.content))
+            ordered.append(message)
+
         for call in pending.tool_calls:
-            if call["id"] in discarded:
-                message = ToolMessage(
-                    f"{DISCARDED_PREFIX}máximo {max_per_tool} consultas a {call['name']}",
-                    tool_call_id=call["id"],
-                    name=call["name"],
-                    status="error",
-                )
-                runs.append(ToolRun(tool=call["name"], args=call["args"], status="descartada", round=round_number,
+            name = call["name"]
+            if failure is not None:
+                discard(call, f"no se ejecutó por el fallo del proveedor ({failure.code})")
+                continue
+            if used[name] >= limit_of(name):
+                dropped[name] += 1
+                discard(call, f"máximo {limit_of(name)} consultas a {name}")
+                continue
+            if name not in EXTRACTION_TOOLS:
+                used[name] += 1
+            calls_before = deps.llm.calls
+            try:
+                out = tool_node.invoke({"messages": [AIMessage(content="", tool_calls=[call])]}, config=config)
+            except ProviderError as error:
+                failure = error
+                runs.append(ToolRun(tool=name, args=call["args"], status="error", round=round_number,
+                                    error=str(error)))
+                continue
+            finally:
+                if name in EXTRACTION_TOOLS and deps.llm.calls > calls_before:
+                    extractions[name] += 1
+                    used[name] += 1
+            message = out["messages"][0]
+            if message.status == "error":
+                runs.append(ToolRun(tool=name, args=call["args"], status="error", round=round_number,
                                     error=message.content))
             else:
-                message = results[call["id"]]
-                if message.status == "error":
-                    runs.append(ToolRun(tool=call["name"], args=call["args"], status="error", round=round_number,
-                                        error=message.content))
-                else:
-                    artifact = message.artifact
-                    runs.append(ToolRun(tool=call["name"], args=call["args"], status="ok", round=round_number,
-                                        evidence_id=artifact.evidence_id, result=artifact.model_dump(mode="json")))
-                    artifacts[artifact.evidence_id] = artifact
+                artifact = message.artifact
+                runs.append(ToolRun(tool=name, args=call["args"], status="ok", round=round_number,
+                                    evidence_id=artifact.evidence_id, result=artifact.model_dump(mode="json")))
+                artifacts[artifact.evidence_id] = artifact
             ordered.append(message)
+        warnings = list(state.get("warnings", []))
+        warnings += [_discarded_warning(tool, count, limit_of(tool)) for tool, count in dropped.items()]
         round_messages = dict(state.get("round_messages", {}))
         round_messages[round_number] = ordered
-        return {"runs": runs, "artifacts": artifacts, "warnings": warnings, "round_messages": round_messages,
-                "pending": None}
+        update: dict[str, Any] = {"runs": runs, "artifacts": artifacts, "warnings": warnings,
+                                  "round_messages": round_messages, "pending": None, "extractions": dict(extractions)}
+        if failure is not None:
+            update.update({"status": "error", "error_code": failure.code, "message": str(failure)})
+        return update
 
     def after_execute(state: AgentState) -> str:
+        if state.get("status"):
+            return "respond"
         failed = any(run.status == "error" for run in state["runs"] if run.round == state["round"])
         return "repair" if failed and state["round"] == 1 else "collect"
 
@@ -267,6 +299,12 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
             elif isinstance(artifact, DocumentResult):
                 valid = valid or bool(artifact.hits)
                 warnings += [warning.message for warning in artifact.warnings]
+            elif isinstance(artifact, ContrastResult):
+                valid = valid or bool(artifact.comparisons)
+                warnings += artifact.warnings
+            elif isinstance(artifact, CausalResult):
+                valid = True
+                warnings += artifact.warnings
         evidence, aliases = index(items)
         notes = _failure_notes(state.get("runs", []))
         update = {"evidence": evidence, "aliases": aliases, "warnings": list(dict.fromkeys(warnings)), "notes": notes}
@@ -280,7 +318,7 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
             blocks = [
                 evidence_block(item.id, item.kind, item.prompt_text, item.extra)
                 for item in state["evidence"].values()
-                if item.kind != "busqueda"
+                if item.kind != "busqueda" and not item.internal
             ]
             messages: list[BaseMessage] = [
                 SystemMessage(synthesis_system_prompt(cfg.assistant_name)),
@@ -325,6 +363,7 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
             hedges=cfg.hedges,
             id_pattern=deps.documents_config.id_regex,
             document_ids=state["context"].document_ids,
+            consulted=consulted,
         )
         messages = [problem.message for problem in problems]
         log = list(dict.fromkeys([*state.get("problem_log", []), *messages]))  # sin repetir si se reverifica
@@ -404,7 +443,7 @@ def build_graph(deps: AgentDeps) -> CompiledStateGraph:
     graph.add_conditional_edges("check_question", unless_finished("load_context"), ["load_context", "respond"])
     graph.add_edge("load_context", "plan")
     graph.add_conditional_edges("plan", unless_finished("execute"), ["execute", "respond"])
-    graph.add_conditional_edges("execute", after_execute, ["repair", "collect"])
+    graph.add_conditional_edges("execute", after_execute, ["repair", "collect", "respond"])
     graph.add_conditional_edges("repair", after_repair, ["execute", "collect"])
     graph.add_conditional_edges("collect", unless_finished("synthesize"), ["synthesize", "respond"])
     graph.add_conditional_edges("synthesize", after_synthesize, ["verify", "synthesize", "unparseable"])

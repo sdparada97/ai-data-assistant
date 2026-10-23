@@ -39,16 +39,21 @@ class Synthesis(BaseModel):
 # --- Evidencia y traza (código) ----------------------------------------------------------------
 
 
+EvidenceKind = Literal["metricas", "calidad", "documento", "busqueda", "contraste", "causalidad"]
+
+
 @dataclass(frozen=True)
 class Evidence:
     """Una evidencia citable de esta ejecución.
 
-    `numbers` son los valores de los resultados de métricas y calidad; `text` es el texto
-    literal de un fragmento. `aliases` son todos los ids por los que se puede citar.
+    `numbers` son las cifras citables (de métricas y calidad, todas las del resultado; de contraste
+    y causalidad, solo las explícitas); `text` es el texto literal de un fragmento. `aliases` son
+    todos los ids por los que se puede citar. `internal` marca las consultas internas de un contraste
+    o una evaluación causal: se pueden citar pero no van como bloques a la síntesis.
     """
 
     id: str
-    kind: Literal["metricas", "calidad", "documento", "busqueda"]
+    kind: EvidenceKind
     prompt_text: str
     aliases: frozenset[str]
     numbers: tuple[Decimal, ...] = ()
@@ -62,6 +67,10 @@ class Evidence:
     query: str | None = None
     fragment_ids: tuple[str, ...] = ()
     title: str = ""  # título legible para la interfaz, generado en código
+    internal: bool = False
+    verdict: str | None = None  # veredicto de una evaluación causal
+    metrics: tuple[str, ...] = ()  # métricas y agrupación de una consulta de métricas
+    group_by: tuple[str, ...] = ()
 
 
 class ToolRun(BaseModel):
@@ -91,7 +100,7 @@ class EvidenceView(BaseModel):
     """Una evidencia de la ejecución tal como la recibe quien lee la respuesta (la interfaz)."""
 
     id: str
-    kind: Literal["metricas", "calidad", "documento", "busqueda"]
+    kind: EvidenceKind
     title: str = Field(description="Título legible, generado en código a partir de la consulta o del documento")
     citable_ids: list[str] = Field(description="Ids por los que una afirmación puede citarla")
     tool: str
@@ -99,7 +108,9 @@ class EvidenceView(BaseModel):
     chunk_id: str | None = None
     page: int | None = None
     text: str | None = Field(default=None, description="Texto literal del fragmento")
-    result: dict[str, Any] | None = Field(default=None, description="Resultado completo de métricas o calidad")
+    result: dict[str, Any] | None = Field(
+        default=None, description="Resultado completo de métricas, calidad, contraste o causalidad"
+    )
     query: str | None = Field(default=None, description="Consulta de la búsqueda")
     fragment_ids: list[str] = Field(default_factory=list, description="Fragmentos de la búsqueda")
 

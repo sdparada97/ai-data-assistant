@@ -368,3 +368,83 @@ def test_invalid_timeout_setting_is_warned(monkeypatch: pytest.MonkeyPatch, aske
     app = page(monkeypatch, asked)
 
     assert TIMEOUT_WARNING in [element.value for element in app.warning]
+
+
+# --- Detalle del contraste y de la evaluación causal ------------------------------------------------
+
+CONTRAST_EV = "EV-0000000000cc"
+CAUSAL_EV = "EV-0000000000dd"
+
+
+def _comparison(statement: str, ref: str, kind: str, verdict: str, **fields: Any) -> dict[str, Any]:
+    claim_fields = {"kind": kind, "chunk_id": "05_Reporte_Comercial:003", "evidence_ref": ref, "statement": statement,
+                    "metric": "venta_neta", "dimension": "region", "filters": {"marca": ["Brio"]},
+                    "base": "2026-T1", "target": "2026-T2", "default_periods": False,
+                    "reported": fields.pop("reported", None)}
+    return {"claim": claim_fields, "verdict": verdict, "metric_evidence_id": EV, **fields}
+
+
+CONTRAST = {
+    "id": CONTRAST_EV, "kind": "contraste", "citable_ids": [CONTRAST_EV], "tool": "contrastar_afirmaciones",
+    "doc_id": "05_Reporte_Comercial", "title": "Contraste de Reporte ejecutivo | Desempeño de Brío",
+    "result": {
+        "doc_id": "05_Reporte_Comercial", "doc_title": "Reporte ejecutivo | Desempeño de Brío",
+        "comparisons": [
+            _comparison("Sur: venta neta -7 % (2026-T1 frente a 2026-T2)", "05_Reporte_Comercial:003", "variacion",
+                        "no coincide", reported="-7", actual="-30.27", difference="23.27"),
+            _comparison("Centro: mayor caída de venta neta por region (2026-T1 frente a 2026-T2)", "REP-01", "ranking",
+                        "falsa", actual="-9.03", leader="Sur", leader_value="-30.27"),
+        ],
+        "discarded": [{"chunk_id": "05_Reporte_Comercial:004", "description": "variacion Centro -23 %",
+                       "reason": "no está en la línea del valor"}],
+    },
+}
+CAUSAL = {
+    "id": CAUSAL_EV, "kind": "causalidad", "citable_ids": [CAUSAL_EV], "tool": "evaluar_causalidad",
+    "title": "Evaluación causal: «promociones de la competencia»",
+    "result": {
+        "cause": "promociones de la competencia", "cause_kind": "competencia", "verdict": "no sustentada",
+        "criteria": [
+            {"name": name, "result": result, "detail": f"detalle de {name}", "values": {}, "supports": [EV]}
+            for name, result in [("localizacion", "no encaja"), ("comparacion", "sin efecto diferencial"),
+                                 ("temporalidad", "sin observaciones con fecha"), ("alternativas", "uniforme"),
+                                 ("diseno", "sin diseño que permita atribuir")]
+        ],
+        "discarded": [],
+    },
+}
+
+
+def test_contrast_table(monkeypatch: pytest.MonkeyPatch, asked: list[str]) -> None:
+    outcome = answer(contradictions=[claim("Sur no coincide con el reporte", CONTRAST_EV)], evidence=[CONTRAST])
+    app = send(page(monkeypatch, asked, outcome), "¿Es consistente el reporte?")
+
+    assert labels(app) == [CONTRAST["title"]]
+    table = app.dataframe[0].value
+    sur = table.iloc[0]
+    assert (sur["reportado"], sur["real"], sur["diferencia"], sur["veredicto"]) == ("-7", "-30.27", "23.27", "no coincide")
+    assert sur["filtros"] == "marca: Brio" and sur["períodos"] == "2026-T1 frente a 2026-T2"
+    ranking = table.iloc[1]
+    assert (ranking["evidencia"], ranking["veredicto"], ranking["primero real"]) == ("REP-01", "falsa", "Sur (-30.27)")
+
+
+def test_discarded_claim_is_shown_apart(monkeypatch: pytest.MonkeyPatch, asked: list[str]) -> None:
+    outcome = answer(contradictions=[claim("Sur no coincide con el reporte", CONTRAST_EV)], evidence=[CONTRAST])
+    app = send(page(monkeypatch, asked, outcome), "q")
+
+    assert "Afirmaciones descartadas: 1" in texts(app)
+    discarded = app.dataframe[1].value
+    assert list(discarded["motivo"]) == ["no está en la línea del valor"]
+    assert list(discarded["elemento"]) == ["variacion Centro -23 %"]
+
+
+def test_causal_criteria(monkeypatch: pytest.MonkeyPatch, asked: list[str]) -> None:
+    outcome = answer(facts=[claim("La hipótesis es no sustentada", CAUSAL_EV)], evidence=[CAUSAL])
+    app = send(page(monkeypatch, asked, outcome), "q")
+
+    assert labels(app) == [CAUSAL["title"]]
+    assert "Causa: promociones de la competencia · tipo: competencia" in texts(app)
+    assert "Veredicto: no sustentada" in texts(app)
+    table = app.dataframe[0].value
+    assert list(table["criterio"]) == ["localizacion", "comparacion", "temporalidad", "alternativas", "diseno"]
+    assert table.iloc[0]["resultado"] == "no encaja"

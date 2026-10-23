@@ -26,6 +26,9 @@ limits:
   max_calls_per_tool: 5           # consultas correctas por herramienta y pregunta (plan + corrección)
   max_quality_issues: 10          # incidencias de calidad que se resumen para el LLM
   docs_top_k: 5                   # fragmentos por búsqueda si el LLM no indica otro número
+  max_calls_by_tool:              # máximo propio: ejecuciones que llamaron al LLM de extracción
+    contrastar_afirmaciones: 1
+    evaluar_causalidad: 1
 
 out_of_scope_message: >-
   Solo puedo responder preguntas sobre las ventas y los documentos cargados
@@ -71,3 +74,36 @@ hedges:
   - pueden
   - indicaría
   - indicio
+
+# Contraste de afirmaciones de un documento con los datos (change add-contrast-and-causal-analysis).
+contrast:
+  approx_pp: 1.0                  # diferencia máxima (pp) para "aproximado", con el mismo signo
+  max_claims: 30                  # afirmaciones por documento; las demás se omiten con aviso
+  max_document_chars: 20000       # el documento mayor tiene ~5 000 caracteres
+  direction_words:                # palabras de sentido de una afirmación de dirección
+    contraccion: [contraccion, contrae, caida, cae, disminuye, baja, retrocede]
+    crecimiento: [crecimiento, crece, aumenta, sube, mejora, avanza]
+
+# Evaluación causal con criterios fijos: nunca afirma causalidad.
+causal:
+  locate_margin_pp: 1.0           # un segmento observado "encaja" si varía al menos esto más que el total
+  differential_pp: 1.0            # efecto diferencial de un competidor en el segmento más afectado
+  step_share: 0.8                 # el mayor cambio mensual concentra al menos esta parte de la diferencia
+  uniform_spread_pp: 1.5          # amplitud máxima (pp) para una caída "uniforme"
+  cause_change_pct: 1.0           # una métrica de la causa "no cambió" si varía como mucho esto (%)
+  open_dimensions: [punto_venta_id]
+  search_top_k: 8                 # fragmentos de la búsqueda de la causa
+  cause_kind_examples:            # ejemplos para el plan (tipo de causa)
+    competencia: [promociones de la competencia, precios de la competencia más bajos, descuentos de competidores]
+    disponibilidad: [faltantes de producto, problemas de reposición, exhibición insuficiente]
+    metrica_propia: [subida del precio de la marca, caída de las unidades vendidas]
+
+# "Información insuficiente" no puede declarar ausente lo que la ejecución consultó.
+absence_markers: [faltan, falta, no hay, no existen, no existe, sin datos, no se dispone, no se cuenta con, carece]
+absence_exceptions: [precios de la competencia, precios de competidores, precios promocionales]
+metric_synonyms:
+  ventas: venta_neta
+  ventas netas: venta_neta
+  precio: precio_efectivo
+  precios: precio_efectivo
+  unidades: unidades

@@ -76,7 +76,15 @@ def tool_context(bases: Bases, agent_config: AgentConfig) -> ToolContext:
         embedder=fake_embedder(),
         docs_top_k=agent_config.limits.docs_top_k,
         max_quality_issues=agent_config.limits.max_quality_issues,
+        contrast=agent_config.contrast,
+        causal=agent_config.causal,
+        metric_synonyms=agent_config.metric_synonyms,
+        extractor=_no_extraction,
     )
+
+
+def _no_extraction(schema: object, messages: object) -> None:
+    raise AssertionError("esta prueba no debería llamar a la extracción")
 
 
 def make_deps(bases: Bases, config: AgentConfig, *script: object, secret: str = "") -> AgentDeps:

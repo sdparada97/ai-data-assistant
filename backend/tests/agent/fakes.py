@@ -22,6 +22,7 @@ class ScriptedChatModel(GenericFakeChatModel):
     """Devuelve, en orden, los mensajes (o lanza las excepciones) del guion."""
 
     received: list[list[BaseMessage]] = Field(default_factory=list)
+    bound_tools: list[str] = Field(default_factory=list)
     model: str = "modelo-de-prueba"
 
     @classmethod
@@ -37,6 +38,7 @@ class ScriptedChatModel(GenericFakeChatModel):
         return ChatResult(generations=[ChatGeneration(message=message)])
 
     def bind_tools(self, tools: Sequence[Any], **kwargs: Any) -> ScriptedChatModel:
+        self.bound_tools = [tool.name for tool in tools]
         return self
 
     def with_structured_output(

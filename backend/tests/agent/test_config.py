@@ -97,3 +97,53 @@ def test_invalid_reasoning_is_rejected(tmp_path: Path, field: str) -> None:
 
     with pytest.raises(AgentConfigError, match=field):
         load_agent_config(path)
+
+
+# --- Contraste, causalidad e "información insuficiente" (change add-contrast-and-causal-analysis) ---
+
+
+def test_contrast_and_causal_sections_load() -> None:
+    config = load_agent_config(CONFIG)
+
+    assert str(config.contrast.approx_pp) == "1.0" and config.contrast.max_claims == 30
+    assert "contraccion" in config.contrast.direction_words["contraccion"]
+    assert str(config.causal.step_share) == "0.8" and config.causal.search_top_k == 8
+    assert config.causal.open_dimensions == ("punto_venta_id",)
+    assert set(config.causal.cause_kind_examples) == {"competencia", "disponibilidad", "metrica_propia"}
+    assert config.limits.max_calls_by_tool == {"contrastar_afirmaciones": 1, "evaluar_causalidad": 1}
+    assert "faltan" in config.absence_markers and config.metric_synonyms["ventas"] == "venta_neta"
+
+
+@pytest.mark.parametrize(("change", "field"), [
+    ({"contrast__approx_pp": 0}, "approx_pp"),
+    ({"contrast__direction_words": {"contraccion": ["cae"]}}, "direction_words"),
+    ({"causal__step_share": 1.5}, "step_share"),
+    ({"causal__cause_kind_examples": {"competencia": ["x"]}}, "cause_kind_examples"),
+    ({"limits__max_calls_by_tool": {"contrastar_afirmaciones": 0}}, "max_calls_by_tool"),
+    ({"absence_markers": []}, "absence_markers"),
+])
+def test_invalid_contrast_and_causal_values(tmp_path: Path, change: dict[str, object], field: str) -> None:
+    path = _write(tmp_path, **change)
+
+    with pytest.raises(AgentConfigError, match=field):
+        load_agent_config(path)
+
+
+def test_extraction_tools_default_to_one(tmp_path: Path) -> None:
+    config = load_agent_config(_write(tmp_path, limits__max_calls_by_tool=None))
+
+    assert config.limits.max_calls_by_tool == {"contrastar_afirmaciones": 1, "evaluar_causalidad": 1}
+
+
+def test_unknown_tool_in_the_maximums(tmp_path: Path) -> None:
+    path = _write(tmp_path, limits__max_calls_by_tool={"contrastar_afirmacion": 2})
+
+    with pytest.raises(AgentConfigError, match="herramientas desconocidas: contrastar_afirmacion"):
+        load_agent_config(path)
+
+
+def test_partial_maximums_keep_the_extraction_default(tmp_path: Path) -> None:
+    config = load_agent_config(_write(tmp_path, limits__max_calls_by_tool={"consultar_metrica": 2}))
+
+    assert config.limits.max_calls_by_tool == {"contrastar_afirmaciones": 1, "evaluar_causalidad": 1,
+                                               "consultar_metrica": 2}

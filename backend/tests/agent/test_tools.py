@@ -134,3 +134,116 @@ def test_tool_descriptions_come_from_configuration(tool_context: ToolContext) ->
     assert first in reduced["consultar_metrica"]
     assert not any(name in reduced["consultar_metrica"] for name in tool_context.layer.metrics if name != first)
     assert "reporte comercial" not in full["buscar_documentos"].lower()
+
+
+# --- Herramientas de contraste y causalidad (extracción de prueba) --------------------------------
+
+
+def _with_extraction(tool_context: ToolContext, *script: Any) -> tuple[ToolContext, Any]:
+    from analyst_backend.agent.extraction import llm_extractor
+    from analyst_backend.agent.llm import LLMClient
+
+    from .fakes import ScriptedChatModel
+
+    model = ScriptedChatModel.from_script(*script)
+    llm = LLMClient(model, model_name="modelo-de-prueba", unavailable_retries=0, backoff_s=0)
+    return replace(tool_context, extractor=llm_extractor(llm)), model
+
+
+def test_five_tools(tool_context: ToolContext) -> None:
+    from analyst_backend.agent.tools import TOOL_NAMES
+
+    assert [t.name for t in build_tools(tool_context)] == list(TOOL_NAMES)
+    assert {"contrastar_afirmaciones", "evaluar_causalidad"} <= set(TOOL_NAMES)
+
+
+def test_contrast_of_the_report(tool_context: ToolContext) -> None:
+    from analyst_backend.analytics.models import ContrastResult
+
+    from .extraction_scripts import REPORT, report_extraction
+
+    context, _ = _with_extraction(tool_context, report_extraction())
+
+    message = _call(context, "contrastar_afirmaciones", {"doc_id": REPORT})
+
+    result = message.artifact
+    assert isinstance(result, ContrastResult) and result.discarded == []
+    verdicts = {c.claim.value: c.verdict for c in result.comparisons if c.claim.kind == "variacion"}
+    assert verdicts == {"Centro": "no coincide", "Sur": "no coincide", "Norte": "aproximado",
+                        "Oriente": "aproximado", "Occidente": "aproximado"}
+    [ranking] = [c for c in result.comparisons if c.claim.kind == "ranking"]
+    assert (ranking.verdict, ranking.leader, ranking.claim.evidence_ref) == ("falsa", "Sur", "REP-01")
+    assert len(result.queries) == 1
+    summary = json.loads(message.content)
+    assert summary["claims"][1]["statement"] == "Sur: venta neta -7 % (2026-T1 frente a 2026-T2)"
+    assert summary["claims"][1]["difference"] == 23.27
+
+
+def test_discarded_claims_are_not_a_plan_error(tool_context: ToolContext) -> None:
+    from .extraction_scripts import MOSTLY_INVALID, REPORT
+    from .fakes import json_message
+
+    context, _ = _with_extraction(tool_context, json_message(MOSTLY_INVALID))
+
+    message = _call(context, "contrastar_afirmaciones", {"doc_id": REPORT})
+
+    assert message.status != "error"
+    assert len(message.artifact.comparisons) == 1 and len(message.artifact.discarded) == 3
+
+
+def test_unparseable_extraction_names_the_tool_without_text(tool_context: ToolContext) -> None:
+    context, model = _with_extraction(tool_context, "salida libre del modelo con OC-EXT-06")
+
+    with pytest.raises(QueryError) as error:
+        _call(context, "contrastar_afirmaciones", {"doc_id": "04_Observaciones_Canales"})
+
+    text = format_tool_error(error.value)
+    assert "contrastar_afirmaciones" in text
+    assert "OC-EXT-06" not in text and "salida libre" not in text and len(model.received) == 1
+
+
+def test_unknown_document_does_not_reach_the_extraction(tool_context: ToolContext) -> None:
+    with pytest.raises(QueryError) as error:
+        _call(tool_context, "contrastar_afirmaciones", {"doc_id": "06_Inexistente"})
+
+    assert "06_Inexistente" in error.value.message and "05_Reporte_Comercial" in error.value.message
+
+
+def test_causal_assessment_of_promotions(tool_context: ToolContext) -> None:
+    from analyst_backend.analytics.models import CausalResult
+
+    from .extraction_scripts import CAUSAL_ARGS, promotions_extraction
+
+    context, model = _with_extraction(tool_context, promotions_extraction())
+
+    message = _call(context, "evaluar_causalidad", CAUSAL_ARGS)
+
+    result = message.artifact
+    assert isinstance(result, CausalResult) and result.verdict == "no sustentada"
+    assert [o.evidence_ref for o in result.observations] == ["OC-CEN-02", "REP-02"]
+    assert f'id="04_Observaciones_Canales:004"' in str(model.received[0][-1].content)
+    summary = json.loads(message.content)
+    assert summary["verdict"] == "no sustentada" and len(summary["criteria"]) == 5
+
+
+@pytest.mark.parametrize(("override", "field"), [
+    ({"locate_by": "ciudad"}, "locate_by"),
+    ({"cause_kind": "metrica_propia"}, "cause_metric"),
+])
+def test_invalid_causal_input_does_not_reach_the_extraction(tool_context: ToolContext, override: dict[str, Any],
+                                                            field: str) -> None:
+    from .extraction_scripts import CAUSAL_ARGS
+
+    with pytest.raises(QueryError) as error:
+        _call(tool_context, "evaluar_causalidad", {**CAUSAL_ARGS, **override})
+
+    assert error.value.field == field
+
+
+def test_no_effect_is_rejected_before_the_extraction(tool_context: ToolContext) -> None:
+    from .extraction_scripts import CAUSAL_ARGS
+
+    same_period = {**CAUSAL_ARGS, "compare": {"base": "2026-T1", "target": "2026-T1"}}
+
+    with pytest.raises(QueryError, match="No hay efecto"):  # el extractor de tool_context fallaría si se llamara
+        _call(tool_context, "evaluar_causalidad", same_period)

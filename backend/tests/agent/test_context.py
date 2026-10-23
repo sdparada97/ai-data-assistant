@@ -19,7 +19,7 @@ def test_real_data_range(bases: Bases, agent_config: AgentConfig) -> None:
     assert available.quarters == ("2026-T1", "2026-T2")
     assert available.years == frozenset({2026})
     context = build_planning_context(bases.layer, bases.sales, bases.documents)
-    prompt = planning_system_prompt(context, agent_config.assistant_name)
+    prompt = planning_system_prompt(context, agent_config.assistant_name, agent_config.causal.cause_kind_examples)
     assert "Datos disponibles: de 2026-01 a 2026-06 (trimestres 2026-T1, 2026-T2)." in prompt
 
 
@@ -30,18 +30,20 @@ def test_catalog_comes_from_configuration(bases: Bases, agent_config: AgentConfi
         dimensions={**bases.layer.dimensions, "marca": Dimension(brand.name, brand.description, (*brand.values, "Prueba"), brand.aliases)},
     )
 
-    prompt = planning_system_prompt(build_planning_context(layer, bases.sales, bases.documents), agent_config.assistant_name)
+    prompt = planning_system_prompt(build_planning_context(layer, bases.sales, bases.documents), agent_config.assistant_name,
+                                    agent_config.causal.cause_kind_examples)
 
     assert "Prueba" in prompt
     assert "Prueba" not in planning_system_prompt(
-        build_planning_context(bases.layer, bases.sales, bases.documents), agent_config.assistant_name
+        build_planning_context(bases.layer, bases.sales, bases.documents), agent_config.assistant_name,
+        agent_config.causal.cause_kind_examples,
     )
 
 
 def test_planning_prompt_lists_catalog_documents_and_period_rule(bases: Bases, agent_config: AgentConfig) -> None:
     context = build_planning_context(bases.layer, bases.sales, bases.documents)
 
-    prompt = planning_system_prompt(context, agent_config.assistant_name)
+    prompt = planning_system_prompt(context, agent_config.assistant_name, agent_config.causal.cause_kind_examples)
 
     assert prompt.startswith(f"Eres {agent_config.assistant_name},")
     assert PLAN_RULES in prompt and catalog_text(bases.layer) in prompt and context.documents in prompt

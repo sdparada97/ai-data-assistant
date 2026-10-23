@@ -204,3 +204,146 @@ def test_drop_failing_keeps_the_rest(check) -> None:  # noqa: ANN001
     assert [claim.statement for claim in kept.facts] == ["Sur cayó 30,27 %"]
     assert removed == 1 and removed_note(removed) == "Se retiró 1 afirmación no verificada"
     assert removed_note(2) == "Se retiraron 2 afirmaciones no verificadas"
+
+
+# --- Contraste y causalidad: cifras citables, veredictos e "insuficiente" coherente -----------------
+
+
+@pytest.fixture(scope="module")
+def judged(bases: Bases, agent_config: AgentConfig) -> dict[str, object]:
+    """Evidencias de un contraste (solo Sur válida), una evaluación causal y consultas de métricas."""
+    from analyst_backend.agent.verify import Consulted
+    from analyst_backend.analytics.models import Comparison
+    from analyst_backend.agent.extraction import llm_extractor
+    from analyst_backend.agent.llm import LLMClient
+    from analyst_backend.agent.tools import build_tools
+
+    from .conftest import fake_embedder
+    from .extraction_scripts import CAUSAL_ARGS, MOSTLY_INVALID, REPORT, promotions_extraction
+    from .fakes import ScriptedChatModel, json_message
+    from analyst_backend.agent.tools import ToolContext
+
+    def tools(*script: object) -> dict[str, object]:
+        llm = LLMClient(ScriptedChatModel.from_script(*script), model_name="prueba", unavailable_retries=0, backoff_s=0)
+        context = ToolContext(
+            layer=bases.layer, duckdb_path=bases.sales, documents_config=bases.documents_config,
+            documents_db_path=bases.documents, embedder=fake_embedder(), docs_top_k=5, max_quality_issues=5,
+            contrast=agent_config.contrast, causal=agent_config.causal, metric_synonyms=agent_config.metric_synonyms,
+            extractor=llm_extractor(llm),
+        )
+        return {t.name: t for t in build_tools(context)}
+
+    def call(name: str, args: dict[str, object], *script: object) -> object:
+        return tools(*script)[name].invoke({"type": "tool_call", "name": name, "args": args, "id": "x"})
+
+    contrast = call("contrastar_afirmaciones", {"doc_id": REPORT}, json_message(MOSTLY_INVALID))
+    causal = call("evaluar_causalidad", CAUSAL_ARGS, promotions_extraction())
+    compare = Comparison(base="2026-T1", target="2026-T2")
+
+    def metric(metric_name: str, group_by: list[str]) -> object:
+        return consultar_metrica(MetricQuery(metrics=[metric_name], group_by=group_by, compare=compare),
+                                 bases.layer, bases.sales)
+
+    queries = {
+        "ventas_region": metric("venta_neta", ["region"]),
+        "ventas_marca_region": metric("venta_neta", ["marca", "region"]),
+        "precio_region": metric("precio_efectivo", ["region"]),
+    }
+    consulted = Consulted.build(
+        absence_markers=agent_config.absence_markers, absence_exceptions=agent_config.absence_exceptions,
+        metrics=bases.layer.metrics, metric_synonyms=agent_config.metric_synonyms, dimensions=bases.layer.dimensions,
+    )
+    return {"contrast": contrast.artifact, "causal": causal.artifact, "queries": queries, "consulted": consulted}
+
+
+def _verify(judged: dict[str, object], agent_config: AgentConfig, synthesis: Synthesis,
+            *artifacts: object) -> list[Problem]:
+    items = [item for artifact in artifacts for item in evidence_items(artifact, "")]  # type: ignore[arg-type]
+    evidence, aliases = index(items)
+    return verify_synthesis(synthesis, evidence, aliases, years=YEARS, causal_lexicon=agent_config.causal_lexicon,
+                            hedges=agent_config.hedges, consulted=judged["consulted"])  # type: ignore[arg-type]
+
+
+def test_contrast_figure_cited(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    contrast = judged["contrast"]
+    statement = "En Sur, el reporte indica -7 % y los datos -30.27 %: 23.27 puntos de diferencia"
+
+    assert _verify(judged, agent_config, fact(statement, contrast.evidence_id), contrast) == []  # type: ignore[attr-defined]
+
+
+def test_figure_of_a_discarded_claim(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    contrast = judged["contrast"]
+    assert any(d.description.endswith("-6 %") for d in contrast.discarded)  # type: ignore[attr-defined]
+
+    [problem] = _verify(judged, agent_config, fact("El reporte da -6 % para Norte", contrast.evidence_id), contrast)  # type: ignore[attr-defined]
+
+    assert "cifras que no están en su evidencia (6)" in problem.message
+
+
+def test_internal_query_is_citable_by_its_id(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    contrast = judged["contrast"]
+    query_id = contrast.queries[0].evidence_id  # type: ignore[attr-defined]
+
+    assert _verify(judged, agent_config, fact("Norte cayó -3.48 %", query_id), contrast) == []
+
+
+def test_altered_causal_verdict(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    causal = judged["causal"]
+    synthesis = Synthesis(contradictions=[Claim(statement="La hipótesis de las promociones es compatible con los datos",
+                                                evidence=[causal.evidence_id])])  # type: ignore[attr-defined]
+
+    [problem] = _verify(judged, agent_config, synthesis, causal)
+
+    assert "veredicto distinto" in problem.message and '"no sustentada"' in problem.message
+
+
+def test_cause_described_with_its_verdict(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    causal = judged["causal"]
+    statement = "Que las promociones causaron la caída es una afirmación no sustentada"
+
+    assert _verify(judged, agent_config, fact(statement, causal.evidence_id), causal) == []  # type: ignore[attr-defined]
+
+
+def test_causal_lexicon_without_verdict(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    causal = judged["causal"]
+
+    [problem] = _verify(judged, agent_config, fact("Las promociones causaron la caída", causal.evidence_id), causal)  # type: ignore[attr-defined]
+
+    assert "lenguaje causal" in problem.message
+
+
+def _insufficient(judged: dict[str, object], agent_config: AgentConfig, text: str, *queries: str) -> list[Problem]:
+    artifacts = [judged["queries"][name] for name in queries]  # type: ignore[index]
+    return _verify(judged, agent_config, Synthesis(insufficient=[text]), *artifacts)
+
+
+def test_sales_by_region_were_consulted(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    [problem] = _insufficient(judged, agent_config, "Faltan registros consolidados de ventas por región", "ventas_region")
+
+    assert "venta_neta" in problem.message and "region" in problem.message
+
+
+def test_competitor_sales_were_consulted(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    assert _insufficient(judged, agent_config, "Faltan ventas de la competencia por región", "ventas_marca_region")
+
+
+def test_sales_by_region_not_consulted(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    assert _insufficient(judged, agent_config, "Faltan registros consolidados de ventas por región", "precio_region") == []
+
+
+def test_competitor_prices(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    text = "Faltan datos de precios de la competencia por región"
+
+    assert _insufficient(judged, agent_config, text, "precio_region") == []
+
+
+def test_inventories_by_region(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    assert _insufficient(judged, agent_config, "Faltan datos de inventarios por región", "ventas_region") == []
+
+
+def test_absence_through_an_internal_query(judged: dict[str, object], agent_config: AgentConfig) -> None:
+    contrast = judged["contrast"]  # su consulta interna es venta_neta por región
+
+    problems = _verify(judged, agent_config, Synthesis(insufficient=["No hay datos de ventas por región"]), contrast)
+
+    assert [p.section for p in problems] == ["insufficient"]
